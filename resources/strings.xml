@@ -54,7 +54,6 @@
   <string id="titleStorageLoad">Load</string>
   <string id="titleStorageSave">Save</string>
   <string id="titleStorageDelete">Delete</string>
-  <string id="titleStorageClearLogs">Clear Logs</string>
   <!-- Menu (about) -->
   <string id="titleAbout">About</string>
   <!-- Menu (activity) -->
@@ -73,7 +72,6 @@
   <string id="valueColorWhite">white</string>
   <string id="valueColorBlack">black</string>
   <!-- Layouts -->
-  <string id="titleViewLog">Log</string>
   <string id="labelAltitude">Altitude</string>
   <string id="labelVerticalSpeed">Vert.Speed</string>
   <string id="labelGroundSpeed">Gnd.Speed</string>

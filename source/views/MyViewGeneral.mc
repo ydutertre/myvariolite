@@ -264,16 +264,9 @@ class MyViewGeneralDelegate extends MyViewGlobalDelegate {
 
   function onPreviousPage() {
     //Sys.println("DEBUG: MyViewGeneralDelegate.onPreviousPage()");
-    if ($.oMyActivity != null) { //Skip the log view if we're recording, e.g. in flight
-      Ui.switchToView(new MyViewVarioplot(),
-                new MyViewVarioplotDelegate(),
-                Ui.SLIDE_IMMEDIATE);
-    }
-    else {
-        Ui.switchToView(new MyViewLog(),
-            new MyViewLogDelegate(),
-            Ui.SLIDE_IMMEDIATE);
-    }
+    Ui.switchToView(new MyViewVarioplot(),
+              new MyViewVarioplotDelegate(),
+              Ui.SLIDE_IMMEDIATE);
     return true;
   }
 

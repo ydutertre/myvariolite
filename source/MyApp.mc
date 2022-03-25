@@ -66,9 +66,6 @@ var oMyAltimeter as MyAltimeter = new MyAltimeter();
 var oMyProcessing as MyProcessing = new MyProcessing();
 var oMyTimeStart as Time.Moment = Time.now();
 
-// Log
-var iMyLogIndex as Number = -1;
-
 // Activity session (recording)
 var oMyActivity as MyActivity?;
 
@@ -79,9 +76,6 @@ var oMyView as MyView?;
 //
 // CONSTANTS
 //
-
-// Storage slots
-const MY_STORAGE_SLOTS = 100;
 
 // No-value strings
 // NOTE: Those ought to be defined in the MyApp class like other constants but code then fails with an "Invalid Value" error when called upon; BUG?
@@ -130,36 +124,6 @@ class MyApp extends App.AppBase {
 
   function initialize() {
     AppBase.initialize();
-
-    // Log
-    // ... last entry index
-    var iLogIndex = App.Storage.getValue("storLogIndex") as Number?;
-    if(iLogIndex != null) {
-      $.iMyLogIndex = iLogIndex;
-    }
-    else {
-      // MIGRATION; TODO: Remove after 2022.12.31
-      var iLogEpoch = 0;
-      for(var n=0; n<$.MY_STORAGE_SLOTS; n++) {
-        var s = n.format("%02d");
-        var dictLog = App.Storage.getValue(format("storLog$1$", [s])) as Dictionary?;
-        if(dictLog == null) {
-          break;
-        } else {
-          var i = dictLog.get("timeStart") as Number?;
-          if(i == null) {
-            break;
-          }
-          else if(i > iLogEpoch) {
-            $.iMyLogIndex = n;
-            iLogEpoch = i;
-          }
-        }
-      }
-      if($.iMyLogIndex >= 0) {
-        App.Storage.setValue("storLogIndex", $.iMyLogIndex as App.PropertyValueType);
-      }
-    }
 
     // Timers
     $.oMyTimeStart = Time.now();
@@ -410,16 +374,6 @@ class MyApp extends App.AppBase {
         self.bSinkToneTriggered = false;
       }
     }
-  }
-
-  function clearStorageLogs() as Void {
-    //Sys.println("DEBUG: MyApp.clearStorageLogs()");
-    for(var n=0; n<$.MY_STORAGE_SLOTS; n++) {
-      var s = n.format("%02d");
-      App.Storage.deleteValue(format("storLog$1$", [s]));
-    }
-    App.Storage.deleteValue("storLogIndex");
-    $.iMyLogIndex = -1;
   }
 
 }

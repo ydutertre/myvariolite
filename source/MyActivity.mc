@@ -110,9 +110,6 @@ class MyActivity {
   private var oFitField_GlobalAltitudeMax as FC.Field;
   private var oFitField_GlobalTimeAltitudeMax as FC.Field;
 
-  // Log fields
-
-
   //
   // FUNCTIONS: self
   //
@@ -337,25 +334,6 @@ class MyActivity {
       self.setGlobalTimeAltitudeMin(self.oGlobalTimeAltitudeMin);
       self.setGlobalAltitudeMax(self.fGlobalAltitudeMax);
       self.setGlobalTimeAltitudeMax(self.oGlobalTimeAltitudeMax);
-    }
-
-    // Log entry
-    if(_bSession) {
-      var dictLog = {
-        "timeStart" => self.oTimeStart != null ? (self.oTimeStart as Time.Moment).value() : null,
-        "timeStop" => self.oTimeStop != null ? (self.oTimeStop as Time.Moment).value() : null,
-        "distance" => LangUtils.notNaN(self.fGlobalDistance) ? self.fGlobalDistance : null,
-        "ascent" => LangUtils.notNaN(self.fGlobalAscent) ? self.fGlobalAscent : null,
-        "elapsedAscent" => LangUtils.notNaN(self.iGlobalElapsedAscent) ? self.iGlobalElapsedAscent : null,
-        "altitudeMin" => LangUtils.notNaN(self.fGlobalAltitudeMin) ? self.fGlobalAltitudeMin : null,
-        "timeAltitudeMin" => self.oGlobalTimeAltitudeMin != null ? (self.oGlobalTimeAltitudeMin as Time.Moment).value() : null,
-        "altitudeMax" => LangUtils.notNaN(self.fGlobalAltitudeMax) ? self.fGlobalAltitudeMax : null,
-        "timeAltitudeMax" => self.oGlobalTimeAltitudeMax != null ? (self.oGlobalTimeAltitudeMax as Time.Moment).value() : null,
-      };
-      $.iMyLogIndex = ($.iMyLogIndex + 1) % $.MY_STORAGE_SLOTS;
-      var s = $.iMyLogIndex.format("%02d");
-      App.Storage.setValue(Lang.format("storLog$1$", [s]), dictLog as App.PropertyValueType);
-      App.Storage.setValue("storLogIndex", $.iMyLogIndex as App.PropertyValueType);
     }
   }
 

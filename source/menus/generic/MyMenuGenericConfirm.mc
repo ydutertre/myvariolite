@@ -60,11 +60,6 @@ class MyMenuGenericConfirm extends Ui.Menu {
         Menu.addItem(format("$1$ ?", [Ui.loadResource(Rez.Strings.titleActivityDiscard)]), :menuNone);
       }
     }
-    else if(_context == :contextStorage) {
-      if(_action == :actionClearLogs) {
-        Menu.addItem(format("$1$ ?", [Ui.loadResource(Rez.Strings.titleStorageClearLogs)]), :menuNone);
-      }
-    }
   }
 
 }
@@ -110,11 +105,6 @@ class MyMenuGenericConfirmDelegate extends Ui.MenuInputDelegate {
           ($.oMyActivity as MyActivity).stop(false);
           $.oMyActivity = null;
         }
-      }
-    }
-    else if(self.context == :contextStorage) {
-      if(self.action == :actionClearLogs) {
-        (App.getApp() as MyApp).clearStorageLogs();
       }
     }
     if(self.popout) {

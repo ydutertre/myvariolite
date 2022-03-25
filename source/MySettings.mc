@@ -56,7 +56,6 @@ class MySettings {
   public var bVariometerThermalDetect as Boolean = true;
   public var iVariometerSmoothing as Number = 1;
   public var iVariometerPlotRange as Number = 2;
-  public var iVariometerPlotZoom as Number = 9;
   // ... sounds
   public var bSoundsVariometerTones as Boolean = true;
   public var bVariometerVibrations as Boolean = true;
@@ -92,7 +91,6 @@ class MySettings {
 
   // Other
   public var fVariometerRange as Float = 3.0f;
-  public var fVariometerPlotZoom as Float = 0.0308666666667f;
   public var fMinimumClimb as Float = 0.2;
   public var fMinimumSink as Float = 2.0;
   public var fVariometerSmoothing as Float = 0.5; //Standard deviation of altitude measurement at fixed altitude
@@ -113,7 +111,6 @@ class MySettings {
     self.setVariometerThermalDetect(self.loadVariometerThermalDetect());
     self.setVariometerSmoothing(self.loadVariometerSmoothing());
     self.setVariometerPlotRange(self.loadVariometerPlotRange());
-    self.setVariometerPlotZoom(self.loadVariometerPlotZoom());
     // ... sounds and vibration
     self.setSoundsVariometerTones(self.loadSoundsVariometerTones());
     self.setVariometerVibrations(self.loadVariometerVibrations());
@@ -265,37 +262,6 @@ class MySettings {
     case 1: self.fVariometerSmoothing = 0.5f; break;
     case 2: self.fVariometerSmoothing = 0.7f; break;
     case 3: self.fVariometerSmoothing = 1.0f; break;
-    }
-  }
-
-  function loadVariometerPlotZoom() as Number {
-    var iValue = App.Properties.getValue("userVariometerPlotZoom") as Number?;
-    return iValue != null ? iValue : 9;
-  }
-  function saveVariometerPlotZoom(_iValue as Number) as Void {
-    App.Properties.setValue("userVariometerPlotZoom", _iValue as App.PropertyValueType);
-  }
-  function setVariometerPlotZoom(_iValue as Number) as Void {
-    if(_iValue > 11) {
-      _iValue = 11;
-    }
-    else if(_iValue < 0) {
-      _iValue = 0;
-    }
-    self.iVariometerPlotZoom = _iValue;
-    switch(self.iVariometerPlotZoom) {
-    case 0: self.fVariometerPlotZoom = 0.0000308666667f; break;  // 1000m/px
-    case 1: self.fVariometerPlotZoom = 0.0000617333333f; break;  // 500m/px
-    case 2: self.fVariometerPlotZoom = 0.0001543333333f; break;  // 200m/px
-    case 3: self.fVariometerPlotZoom = 0.0003086666667f; break;  // 100m/px
-    case 4: self.fVariometerPlotZoom = 0.0006173333333f; break;  // 50m/px
-    case 5: self.fVariometerPlotZoom = 0.0015433333333f; break;  // 20m/px
-    case 6: self.fVariometerPlotZoom = 0.0030866666667f; break;  // 10m/px
-    case 7: self.fVariometerPlotZoom = 0.0061733333333f; break;  // 5m/px
-    case 8: self.fVariometerPlotZoom = 0.0154333333333f; break;  // 2m/px
-    case 9: self.fVariometerPlotZoom = 0.0308666666667f; break;  // 1m/px
-    case 10: self.fVariometerPlotZoom = 0.0617333333334f; break;  // 0.5m/px
-    case 11: self.fVariometerPlotZoom = 0.1234666666668f; break;  // 0.25m/px
     }
   }
 

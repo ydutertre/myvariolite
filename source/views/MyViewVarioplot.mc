@@ -43,8 +43,6 @@ using Toybox.WatchUi as Ui;
 
 // Display mode (intent)
 var iMyViewVarioplotPanZoom as Number = 0;
-var iMyViewVarioplotOffsetX as Number = 0;
-var iMyViewVarioplotOffsetY as Number = 0;
 
 class MyViewVarioplot extends MyViewHeader {
 
@@ -55,13 +53,6 @@ class MyViewVarioplot extends MyViewHeader {
   // VARIABLES
   //
 
-  // Display mode (internal)
-  private var iPanZoom as Number = 0;
-
-  // Resources
-  // ... buttons
-  private var oRezButtonKeyUp as Ui.Drawable?;
-  private var oRezButtonKeyDown as Ui.Drawable?;
   // ... fonts
   private var oRezFontPlot as Ui.FontResource?;
 
@@ -169,32 +160,6 @@ class MyViewVarioplot extends MyViewHeader {
     View.onUpdate(_oDC);
     self.drawPlot(_oDC);
     self.drawValues(_oDC);
-
-    // Draw buttons
-    if($.iMyViewVarioplotPanZoom) {
-      if(self.oRezButtonKeyUp == null or self.oRezButtonKeyDown == null
-         or self.iPanZoom != $.iMyViewVarioplotPanZoom) {
-        if($.iMyViewVarioplotPanZoom == 1) {  // ... zoom in/out
-          self.oRezButtonKeyUp = new Rez.Drawables.drawButtonPlus();
-          self.oRezButtonKeyDown = new Rez.Drawables.drawButtonMinus();
-        }
-        else if($.iMyViewVarioplotPanZoom == 2) {  // ... pan up/down
-          self.oRezButtonKeyUp = new Rez.Drawables.drawButtonUp();
-          self.oRezButtonKeyDown = new Rez.Drawables.drawButtonDown();
-        }
-        else if($.iMyViewVarioplotPanZoom == 3) {  // ... pan left/right
-          self.oRezButtonKeyUp = new Rez.Drawables.drawButtonLeft();
-          self.oRezButtonKeyDown = new Rez.Drawables.drawButtonRight();
-        }
-        self.iPanZoom = $.iMyViewVarioplotPanZoom;
-      }
-      (self.oRezButtonKeyUp as Ui.Drawable).draw(_oDC);
-      (self.oRezButtonKeyDown as Ui.Drawable).draw(_oDC);
-    }
-    else {
-      self.oRezButtonKeyUp = null;
-      self.oRezButtonKeyDown = null;
-    }
   }
 
   function drawPlot(_oDC as Gfx.Dc) as Void {
@@ -226,8 +191,8 @@ class MyViewVarioplot extends MyViewHeader {
     // ... plot
     _oDC.setClip(0, self.iLayoutClipY, self.iLayoutClipW, self.iLayoutClipH);
     var iCurrentIndex = (iEndIndex-iVariometerPlotRange+1+MyProcessing.PLOTBUFFER_SIZE) % MyProcessing.PLOTBUFFER_SIZE;
-    var fZoomX = $.oMySettings.fVariometerPlotZoom * Math.cos(iEndLatitude / 495035534.9930312523f);
-    var fZoomY = $.oMySettings.fVariometerPlotZoom;
+    var fZoomX = 0.0308666666667f * Math.cos(iEndLatitude / 495035534.9930312523f);
+    var fZoomY = 0.0308666666667f;
     var iMaxDeltaEpoch = self.TIME_CONSTANT;
     var iLastEpoch = iEndEpoch;  //
     var iLastX = 0;
@@ -238,8 +203,8 @@ class MyViewVarioplot extends MyViewHeader {
       var iCurrentEpoch = $.oMyProcessing.aiPlotEpoch[iCurrentIndex];
       if(iCurrentEpoch >= 0 and iCurrentEpoch >= iStartEpoch) {
         if(iCurrentEpoch-iLastEpoch <= iMaxDeltaEpoch) {
-          var iCurrentX = self.iLayoutCenter+$.iMyViewVarioplotOffsetX+(($.oMyProcessing.aiPlotLongitude[iCurrentIndex]-iEndLongitude)*fZoomX).toNumber();
-          var iCurrentY = self.iLayoutCenter+$.iMyViewVarioplotOffsetY-(($.oMyProcessing.aiPlotLatitude[iCurrentIndex]-iEndLatitude)*fZoomY).toNumber();
+          var iCurrentX = self.iLayoutCenter+(($.oMyProcessing.aiPlotLongitude[iCurrentIndex]-iEndLongitude)*fZoomX).toNumber();
+          var iCurrentY = self.iLayoutCenter-(($.oMyProcessing.aiPlotLatitude[iCurrentIndex]-iEndLatitude)*fZoomY).toNumber();
           var iCurrentVariometer = $.oMyProcessing.aiPlotVariometer[iCurrentIndex];
           if(bDraw) {
             var iCurrentColor;
@@ -297,8 +262,8 @@ class MyViewVarioplot extends MyViewHeader {
       iCurrentIndex = (iCurrentIndex+1) % MyProcessing.PLOTBUFFER_SIZE;
     }
     if($.oMyProcessing.iCenterLongitude != 0 && $.oMyProcessing.iCenterLatitude != 0 && $.oMyProcessing.iStandardDev != 0) {
-      var myX = self.iLayoutCenter + $.iMyViewVarioplotOffsetX+(($.oMyProcessing.iCenterLongitude-iEndLongitude)*fZoomX).toNumber();
-      var myY = self.iLayoutCenter + $.iMyViewVarioplotOffsetY-(($.oMyProcessing.iCenterLatitude-iEndLatitude)*fZoomY).toNumber();
+      var myX = self.iLayoutCenter +(($.oMyProcessing.iCenterLongitude-iEndLongitude)*fZoomX).toNumber();
+      var myY = self.iLayoutCenter -(($.oMyProcessing.iCenterLatitude-iEndLatitude)*fZoomY).toNumber();
       _oDC.setColor(Gfx.COLOR_BLUE, Gfx.COLOR_TRANSPARENT);
       _oDC.drawCircle(myX, myY, ($.oMyProcessing.iStandardDev*fZoomY).toNumber());
     }
@@ -363,18 +328,8 @@ class MyViewVarioplot extends MyViewHeader {
   function onHide() {
     MyViewHeader.onHide();
 
-    //Sys.println("DEBUG: MyViewVarioplot.onHide()");
-    $.iMyViewVarioplotPanZoom = 0;
-    $.iMyViewVarioplotOffsetX = 0;
-    $.iMyViewVarioplotOffsetY = 0;
-
     // Mute tones
     (App.getApp() as MyApp).muteTones();
-
-    // Free resources
-    // ... buttons
-    self.oRezButtonKeyUp = null;
-    self.oRezButtonKeyDown = null;
   }
 
 }
@@ -387,31 +342,15 @@ class MyViewVarioplotDelegate extends Ui.BehaviorDelegate {
 
   function onMenu() {
     //Sys.println("DEBUG: MyViewVarioplotDelegate.onMenu()");
-    if($.iMyViewVarioplotPanZoom) {
-      $.iMyViewVarioplotPanZoom = 0;  // ... cancel pan/zoom
-      $.iMyViewVarioplotOffsetX = 0;
-      $.iMyViewVarioplotOffsetY = 0;
-      Ui.pushView(new MyMenuGeneric(:menuSettings),
-                  new MyMenuGenericDelegate(:menuSettings),
-                  Ui.SLIDE_IMMEDIATE);
-    }
-    else {
-      $.iMyViewVarioplotPanZoom = 1;  // ... enter pan/zoom
-      Ui.requestUpdate();
-    }
+    Ui.pushView(new MyMenuGeneric(:menuSettings),
+                new MyMenuGenericDelegate(:menuSettings),
+                Ui.SLIDE_IMMEDIATE);
     return true;
   }
 
   function onSelect() {
     //Sys.println("DEBUG: MyViewVarioplotDelegate.onSelect()");
-    if($.iMyViewVarioplotPanZoom) {
-      $.iMyViewVarioplotPanZoom = ($.iMyViewVarioplotPanZoom+1) % 4;
-      if($.iMyViewVarioplotPanZoom == 0) {
-        $.iMyViewVarioplotPanZoom = 1;
-      }
-      Ui.requestUpdate();
-    }
-    else if($.oMyActivity == null) {
+    if($.oMyActivity == null) {
       Ui.pushView(new MyMenuGenericConfirm(:contextActivity, :actionStart),
                   new MyMenuGenericConfirmDelegate(:contextActivity, :actionStart, false),
                   Ui.SLIDE_IMMEDIATE);
@@ -426,15 +365,7 @@ class MyViewVarioplotDelegate extends Ui.BehaviorDelegate {
 
   function onBack() {
     //Sys.println("DEBUG: MyViewVarioplotDelegate.onBack()");
-    if($.iMyViewVarioplotPanZoom) {
-      $.iMyViewVarioplotPanZoom = 0;  // ... cancel pan/zoom
-      $.iMyViewVarioplotOffsetX = 0;
-      $.iMyViewVarioplotOffsetY = 0;
-      Ui.requestUpdate();
-      return true;
-    }
-    else if($.oMyActivity != null) {
-
+    if($.oMyActivity != null) {
       return true;
     }
     return false;
@@ -447,56 +378,15 @@ class MyViewVarioplotDelegate extends Ui.BehaviorDelegate {
                       new MyViewVariometerDelegate(),
                       Ui.SLIDE_IMMEDIATE);
     }
-    else if($.iMyViewVarioplotPanZoom == 1) {  // ... zoom in
-      var fPlotZoom_previous = $.oMySettings.fVariometerPlotZoom;
-      $.oMySettings.setVariometerPlotZoom($.oMySettings.iVariometerPlotZoom+1);
-      var fPlotZoom_ratio = $.oMySettings.fVariometerPlotZoom/fPlotZoom_previous;
-      $.iMyViewVarioplotOffsetY = ($.iMyViewVarioplotOffsetY*fPlotZoom_ratio).toNumber();
-      $.iMyViewVarioplotOffsetX = ($.iMyViewVarioplotOffsetX*fPlotZoom_ratio).toNumber();
-      App.Properties.setValue("userVariometerPlotZoom", $.oMySettings.iVariometerPlotZoom);
-      Ui.requestUpdate();
-    }
-    else if($.iMyViewVarioplotPanZoom == 2) {  // ... pan up
-      $.iMyViewVarioplotOffsetY += 10;
-      Ui.requestUpdate();
-    }
-    else if($.iMyViewVarioplotPanZoom == 3) {  // ... pan left
-      $.iMyViewVarioplotOffsetX += 10;
-      Ui.requestUpdate();
-    }
     return true;
   }
 
   function onNextPage() {
     //Sys.println("DEBUG: MyViewVarioplotDelegate.onNextPage()");
     if($.iMyViewVarioplotPanZoom == 0) {
-      if($.oMyActivity != null) { //Skip the log view if we are recording, e.g. in flight
-          Ui.switchToView(new MyViewGeneral(),
-                  new MyViewGeneralDelegate(),
-                  Ui.SLIDE_IMMEDIATE);
-      }
-      else {
-        Ui.switchToView(new MyViewLog(),
-                        new MyViewLogDelegate(),
-                        Ui.SLIDE_IMMEDIATE);        
-      }
-    }
-    else if($.iMyViewVarioplotPanZoom == 1) {  // ... zoom out
-      var fPlotZoom_previous = $.oMySettings.fVariometerPlotZoom;
-      $.oMySettings.setVariometerPlotZoom($.oMySettings.iVariometerPlotZoom-1);
-      var fPlotZoom_ratio = $.oMySettings.fVariometerPlotZoom/fPlotZoom_previous;
-      $.iMyViewVarioplotOffsetY = ($.iMyViewVarioplotOffsetY*fPlotZoom_ratio).toNumber();
-      $.iMyViewVarioplotOffsetX = ($.iMyViewVarioplotOffsetX*fPlotZoom_ratio).toNumber();
-      App.Properties.setValue("userVariometerPlotZoom", $.oMySettings.iVariometerPlotZoom);
-      Ui.requestUpdate();
-    }
-    else if($.iMyViewVarioplotPanZoom == 2) {  // ... pan down
-      $.iMyViewVarioplotOffsetY -= 10;
-      Ui.requestUpdate();
-    }
-    else if($.iMyViewVarioplotPanZoom == 3) {  // ... pan right
-      $.iMyViewVarioplotOffsetX -= 10;
-      Ui.requestUpdate();
+        Ui.switchToView(new MyViewGeneral(),
+                new MyViewGeneralDelegate(),
+                Ui.SLIDE_IMMEDIATE);
     }
     return true;
   }
