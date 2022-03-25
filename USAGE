@@ -40,8 +40,7 @@ settings with the Up, Down, Select (top right button) and Back (bottom right)
 buttons. Swipes and taps also work. Check the settings and set them to what you like!
 
 The Select button can be used to start and stop the activity recording, and Back can
-be used to exit the app (except in the log view, so check further down this usage
-guide for details).
+be used to exit the app.
 
 Foreword
 --------
@@ -113,25 +112,8 @@ In addition, the following values will be displayed in the corner of the plot:
  - Bottom-Right:
    your current finesse
 
-By pressing the MENU button (long-pressing the UP button), you will enter the
-Pan/Zoom mode, where short pressing the following buttons will result in:
- - SELECT: switch between zoom in/out, pan up/down, pan left/right
- - UP:     zoom in  /OR/ pan up   /OR/ pan left
- - DOWN:   zoom out /OR/ pan down /OR/ pan right
-
-By pressing the MENU button (long-pressing the UP button) a second time, you
+By pressing the MENU button (long-pressing the UP button), you
 will enter the Settings menu (see Settings below).
-
-Log View
---------
-
-My Vario Log view keeps track of your last recorded activities (global session
-details; see Activity Recording below).
-
-Use the SELECT and BACK buttons to browse through the last 100 saved entries.
-
-The Log view is not available in flight (while recording)
-
 
 Activity Recording
 ------------------
@@ -182,11 +164,6 @@ The application allows you to specify the following settings:
     - Elevation:
       calibrate the altimeter using the current known elevation
       (QNH shall be adjusted accordingly)
-  > Correction
-    - Absolute:
-      set the absolute device's sensor error correction
-    - Relative:
-      set the relative device's sensor error correction
 
 * Variometer
   - Range:
@@ -240,10 +217,6 @@ The application allows you to specify the following settings:
   - Timezone:
     display Local Time (LT) or Universal Time Coordinates (UTC/Z)
 
-* Storage
-  - Clear logs:
-    delete logs
-
 
 About Data Filtering
 --------------------
@@ -286,36 +259,6 @@ following across the last 60 seconds of location and variometer data:
 
 This feature is experimental, and could be completely useless. Use at your own risk.
 If you have a better algo in mind, please let me know!!
-
-Calibrating the Device Sensor
------------------------------
-
-My Vario allows you to calibrate/correct your device's barometric sensor using
-the following formulas:
-
-   QFEcalibrated = QFEsensor * Crel + Cabs
-
-If you suspect your device's sensor is inaccurate, you shall:
-
-1. install the PilotAltimeter widget to access the device's *QFE* readings
-   (unfortunately, this falls out of My Vario scope/purpose)
-
-2. take down multiple QFE readings, at different altitude, using your device's
-   *raw* QFE and a reliable, calibrated, reference barometer
-
-3. import those readings in a LibreOffice Calc (or Microsoft Excel) spreadsheet
-   and obtain the Crel and Cabs coefficients by performing a linear regression:
-
-     https://help.libreoffice.org/Calc/Regression_Analysis
-     where Crel = Slope and Cabs = Intercept
-
-   (curve-fitting for dummies: https://xkcd.com/2048/)
-
-4. set Altimeter -> Correction -> Relative/Absolute values to the calculated
-   cofficients
-
-Not an easy feat. But if you must...
-
 
 WARNING!!! GOTCHAS!!!
 ---------------------

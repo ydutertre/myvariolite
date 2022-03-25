@@ -104,7 +104,7 @@ class MyAltimeter {
     //Sys.println(format("DEBUG: QFE (raw) = $1$", [self.fQFE_raw]));
 
     // Calibrated value
-    self.fQFE = self.fQFE_raw * $.oMySettings.fAltimeterCorrectionRelative + $.oMySettings.fAltimeterCorrectionAbsolute;
+    self.fQFE = self.fQFE_raw;
     //Sys.println(format("DEBUG: QFE (calibrated) = $1$", [self.fQFE]));
 
     // Derive altitudes (ICAO formula)

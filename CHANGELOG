@@ -1,3 +1,11 @@
+* 2.0
+  - Removed features to create My Vario Lite, thus using less memory and more watch
+    compatibility
+  - Added support for Fenix 5, Fenix 6, Forerunner 645 and Forerunner 935
+  - Removed Log view
+  - Removed ability to pan and zoom in the varioplot view
+  - Removed relative and absolute altitude correction
+
 * 1.4
   - Added the Forerunner 645 Music as a supported watch
   - Added thermal detection option (see USAGE)

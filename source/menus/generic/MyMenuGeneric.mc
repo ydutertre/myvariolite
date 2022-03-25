@@ -59,7 +59,6 @@ class MyMenuGeneric extends Ui.Menu {
     else if(_menu == :menuSettingsAltimeter) {
       Menu.setTitle(Ui.loadResource(Rez.Strings.titleSettingsAltimeter) as String);
       Menu.addItem(Ui.loadResource(Rez.Strings.titleAltimeterCalibration) as String, :menuAltimeterCalibration);
-      Menu.addItem(Ui.loadResource(Rez.Strings.titleAltimeterCorrection) as String, :menuAltimeterCorrection);
     }
     else if(_menu == :menuAltimeterCalibration) {
       Menu.setTitle(Ui.loadResource(Rez.Strings.titleAltimeterCalibration) as String);
@@ -67,11 +66,6 @@ class MyMenuGeneric extends Ui.Menu {
       if(LangUtils.notNaN($.oMyAltimeter.fAltitudeActual)) {
         Menu.addItem(Ui.loadResource(Rez.Strings.titleAltimeterCalibrationElevation) as String, :menuAltimeterCalibrationElevation);
       }
-    }
-    else if(_menu == :menuAltimeterCorrection) {
-      Menu.setTitle(Ui.loadResource(Rez.Strings.titleAltimeterCorrection) as String);
-      Menu.addItem(Ui.loadResource(Rez.Strings.titleAltimeterCorrectionAbsolute) as String, :menuAltimeterCorrectionAbsolute);
-      Menu.addItem(Ui.loadResource(Rez.Strings.titleAltimeterCorrectionRelative) as String, :menuAltimeterCorrectionRelative);
     }
 
     else if(_menu == :menuSettingsVariometer) {
@@ -202,11 +196,6 @@ class MyMenuGenericDelegate extends Ui.MenuInputDelegate {
                     new MyMenuGenericDelegate(:menuAltimeterCalibration),
                     Ui.SLIDE_IMMEDIATE);
       }
-      else if(_item == :menuAltimeterCorrection) {
-        Ui.pushView(new MyMenuGeneric(:menuAltimeterCorrection),
-                    new MyMenuGenericDelegate(:menuAltimeterCorrection),
-                    Ui.SLIDE_IMMEDIATE);
-      }
     }
     else if(self.menu == :menuAltimeterCalibration) {
       if(_item == :menuAltimeterCalibrationQNH) {
@@ -220,18 +209,7 @@ class MyMenuGenericDelegate extends Ui.MenuInputDelegate {
                     Ui.SLIDE_IMMEDIATE);
       }
     }
-    else if(self.menu == :menuAltimeterCorrection) {
-      if(_item == :menuAltimeterCorrectionAbsolute) {
-        Ui.pushView(new MyPickerGenericPressure(:contextSettings, :itemAltimeterCorrection),
-                    new MyPickerGenericPressureDelegate(:contextSettings, :itemAltimeterCorrection),
-                    Ui.SLIDE_IMMEDIATE);
-      }
-      else if(_item == :menuAltimeterCorrectionRelative) {
-        Ui.pushView(new MyPickerAltimeterCorrectionRelative(),
-                    new MyPickerAltimeterCorrectionRelativeDelegate(),
-                    Ui.SLIDE_IMMEDIATE);
-      }
-    }
+
 
     else if(self.menu == :menuSettingsVariometer) {
       if(_item == :menuVariometerRange) {

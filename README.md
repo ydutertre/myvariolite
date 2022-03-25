@@ -30,9 +30,6 @@ when circling)
 rate along your flight path. This view can optionally include a detected thermal
 core to help keep within the thermal
 
-- a Log view, allowing to keep track of your last activities (unavailable during
-flight) including flight start and end times, maximum and minimum altitudes, etc.
-
 An option to auto-switch to and from the varioplot/thermal assistant view automa-
 tically (based on circling auto-detection) is available.
 
@@ -74,10 +71,10 @@ Please refer to the USAGE file.
 
 ## Supported watches
 
-I have reduced the number of watches supported compared to GliderSK (removed
-descent mk1 and charlie d2). This is because I am using variable frequency
-tones for the vario, which are only supported for SDK 3.1.0 and above. I am
-testing this application on my Garmin Fenix 7X.
+I am using variable frequencytones for the vario, which are only supported for
+SDK 3.1.0 and above. This restricts the watches I can support. The My Vario Lite
+Application however has had memory optimized to support watches that provie 124kb
+of memory to applications (Fenix 5, Fenix 6, Forerunner 645, Forerunner 935, etc.)
 
 ## Not a programmer
 
