@@ -24,9 +24,18 @@ Usage instructions
 Getting Started
 ---------
 
-First, if you're confused that the app is not displaying any data, don't fret!
-You just need to get a GPS fix :) Go to a window or go outside, and all will
-become clear.
+Upon launch, the application automatically calibrates its raw pressure reading
+to match the altitude detected by the watch. As such, if your watch supports maps,
+it is a good idea to do a DEM Calibration at takeoff, prior to launching the app.
+This is done outside of the app in the watch Settings -> Sensors and Accessories
+-> Altimeter -> Calibrate -> Use DEM.
+
+Otherwise, you will need to manually calibrate the altitude after launching My Vario,
+as detailed in the Settings section.
+
+After launching the app, if you're confused that the app is not displaying any
+data, don't fret! You just need to get a GPS fix :) Go to a window or go outside,
+and all will become clear.
 
 Next is navigation. The app is geared towards watches that can be used without
 a touch interface, such as Forerunner or Fenix series.
@@ -49,10 +58,15 @@ My Vario relies on your device's raw barometric sensor to compute the altitude,
 using the ad-hoc International Civil Aviation Organization (ICAO) formulas and
 according to the International Standard Atmosphere (ISA).
 
-Consequently, you MUST calibrate My Vario internal altimeter - using either
-the known QNH or elevation (see Settings below) - to obtain an accurate
-altitude reading (the device's "native" altimeter/barometer settings are
-ignored).
+Upon startup, the application will read the watch altitude (if available) and
+calibrate its barometer based on that. If the watch altitude was correct, then
+everything is fine, and no further calibration is needed.
+
+If, however you are unsure that your watch altitude is correct, or you know the
+exact altitude of takeoff better than the watch does, you should calibrate My
+Vario internal altimeter - using either the known QNH or elevation (see Settings
+below) - to obtain an accurate altitude reading (besides the initial automated
+calibration, the device's "native" altimeter/barometer settings are ignored).
 
 My Vario is based on the excellent GliderSK by Cedric Dufour. If you like this
 application, you should consider donating to him (see DONATE file or below).
@@ -111,6 +125,9 @@ In addition, the following values will be displayed in the corner of the plot:
    your current ground speed
  - Bottom-Right:
    your current finesse
+
+If turned on, the current thermal detected core will be displayed as a blue circle.
+See "About Thermal Detection" for more details.
 
 By pressing the MENU button (long-pressing the UP button), you
 will enter the Settings menu (see Settings below).

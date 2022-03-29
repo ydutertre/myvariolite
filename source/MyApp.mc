@@ -215,6 +215,13 @@ class MyApp extends App.AppBase {
     if(oActivityInfo != null) {
       if(oActivityInfo has :rawAmbientPressure and oActivityInfo.rawAmbientPressure != null) {
         $.oMyAltimeter.setQFE(oActivityInfo.rawAmbientPressure as Float);
+        //Sys.println(format("First altimeter run $1$", [$.oMyAltimeter.bFirstRun]));        
+        //Initial automated calibration based on watch altitude
+        if($.oMyAltimeter.bFirstRun && _oInfo has :altitude && _oInfo.altitude != null) {
+          $.oMyAltimeter.bFirstRun = false;
+          $.oMyAltimeter.setAltitudeActual(_oInfo.altitude);
+          $.oMySettings.saveAltimeterCalibrationQNH($.oMyAltimeter.fQNH);
+        }
       }
     }
 
@@ -364,7 +371,7 @@ class MyApp extends App.AppBase {
         self.iTonesLastTick = self.iTonesTick;
         return;
       }
-      else if(fValue <= $.oMySettings.fMinimumSink && !self.bSinkToneTriggered) {
+      else if(fValue <= $.oMySettings.fMinimumSink && !self.bSinkToneTriggered && self.iTones) {
         var toneProfile = [new Attn.ToneProfile(220, 2000)];
         Attn.playTone({:toneProfile=>toneProfile});
         self.bSinkToneTriggered = true;

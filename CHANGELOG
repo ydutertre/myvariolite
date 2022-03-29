@@ -1,3 +1,7 @@
+* 2.11
+  - Added an initial, automated altitude calibration upon startup,
+    based on the watch-provided altitude
+
 * 2.0
   - Removed features to create My Vario Lite, thus using less memory and more watch
     compatibility

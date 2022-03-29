@@ -74,7 +74,7 @@ class MyPickerGenericSettings extends Ui.Picker {
         var oFactory = new PickerFactoryDictionary([0, 1, 2, 3], asValues, {:font => Gfx.FONT_TINY});
         Picker.initialize({
             :title => new Ui.Text({
-                :text => Ui.loadResource(Rez.Strings.titleVariometerRange) as String,
+                :text => Ui.loadResource(Rez.Strings.titleVariometerSmoothing) as String,
                 :font => Gfx.FONT_TINY,
                 :locX=>Ui.LAYOUT_HALIGN_CENTER,
                 :locY=>Ui.LAYOUT_VALIGN_BOTTOM,
