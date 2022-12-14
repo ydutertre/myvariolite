@@ -1,3 +1,6 @@
+* 2.12
+  - Added support for Enduro 1
+
 * 2.11
   - Added an initial, automated altitude calibration upon startup,
     based on the watch-provided altitude
