@@ -203,7 +203,7 @@ class MyProcessing {
 
     // Kalman Filter initialize
     if(LangUtils.notNaN(self.fPreviousAltitude) && self.fPreviousAltitude != null && !$.oMyKalmanFilter.bFilterReady) {
-      $.oMyKalmanFilter.init(self.fPreviousAltitude, 0, self.iPreviousAltitudeEpoch);
+      $.oMyKalmanFilter.init(self.fPreviousAltitude, 0.0, self.iPreviousAltitudeEpoch);
     }
 
     // ... variometer
@@ -211,7 +211,7 @@ class MyProcessing {
       if(self.iPreviousAltitudeEpoch >= 0 and _iEpoch-self.iPreviousAltitudeEpoch != 0) {
         self.fVariometer = (self.fAltitude-self.fPreviousAltitude) / (_iEpoch-self.iPreviousAltitudeEpoch);
         if($.oMyKalmanFilter.bFilterReady) {
-          $.oMyKalmanFilter.update(fAltitude, 0, _iEpoch);
+          $.oMyKalmanFilter.update(fAltitude, 0.0, _iEpoch);
           self.fVariometer_filtered = $.oMyKalmanFilter.fVelocity;
           self.fAltitude = $.oMyKalmanFilter.fPosition;
         //  Sys.println(format("DEBUG: (Calculated) altimetric variometer = $1$ ~ $2$", [self.fAltitude, $.oMyKalmanFilter.fPosition]));
