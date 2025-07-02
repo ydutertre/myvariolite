@@ -1,7 +1,7 @@
 <!-- -*- mode:xml; tab-width:2; c-basic-offset:2; intent-tabs-mode:nil; -*- ex: set tabstop=2 expandtab: -->
 <strings>
   <string id="AppName">My Vario Lite</string>
-  <string id="AppVersion">2.12</string>
+  <string id="AppVersion">2.13</string>
   <!-- Properties -->
   <string id="titleVersion">Version</string>
   <string id="titleLicense">License</string>
