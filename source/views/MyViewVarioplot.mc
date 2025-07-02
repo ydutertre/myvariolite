@@ -190,7 +190,7 @@ class MyViewVarioplot extends MyViewHeader {
 
     // ... plot
     _oDC.setClip(0, self.iLayoutClipY, self.iLayoutClipW, self.iLayoutClipH);
-    var iCurrentIndex = (iEndIndex-iVariometerPlotRange+1+MyProcessing.PLOTBUFFER_SIZE) % MyProcessing.PLOTBUFFER_SIZE;
+    var iCurrentIndex = (iEndIndex-iVariometerPlotRange+1+$.oMyProcessing.PLOTBUFFER_SIZE) % $.oMyProcessing.PLOTBUFFER_SIZE;
     var fZoomX = 0.0308666666667f * Math.cos(iEndLatitude / 495035534.9930312523f);
     var fZoomY = 0.0308666666667f;
     var iMaxDeltaEpoch = self.TIME_CONSTANT;
@@ -259,7 +259,7 @@ class MyViewVarioplot extends MyViewHeader {
       else {
         bDraw = false;
       }
-      iCurrentIndex = (iCurrentIndex+1) % MyProcessing.PLOTBUFFER_SIZE;
+      iCurrentIndex = (iCurrentIndex+1) % $.oMyProcessing.PLOTBUFFER_SIZE;
     }
     if($.oMyProcessing.iCenterLongitude != 0 && $.oMyProcessing.iCenterLatitude != 0 && $.oMyProcessing.iStandardDev != 0) {
       var myX = self.iLayoutCenter +(($.oMyProcessing.iCenterLongitude-iEndLongitude)*fZoomX).toNumber();
