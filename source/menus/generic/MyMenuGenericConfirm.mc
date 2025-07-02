@@ -51,13 +51,13 @@ class MyMenuGenericConfirm extends Ui.Menu {
     Menu.setTitle(Ui.loadResource(Rez.Strings.titleConfirm) as String);
     if(_context == :contextActivity) {
       if(_action == :actionStart) {
-        Menu.addItem(format("$1$ ?", [Ui.loadResource(Rez.Strings.titleActivityStart)]), :menuNone);
+        Menu.addItem(format("$1$?", [Ui.loadResource(Rez.Strings.titleActivityStart)]), :menuNone);
       }
       else if(_action == :actionSave) {
-        Menu.addItem(format("$1$ ?", [Ui.loadResource(Rez.Strings.titleActivitySave)]), :menuNone);
+        Menu.addItem(format("$1$?", [Ui.loadResource(Rez.Strings.titleActivitySave)]), :menuNone);
       }
       else if(_action == :actionDiscard) {
-        Menu.addItem(format("$1$ ?", [Ui.loadResource(Rez.Strings.titleActivityDiscard)]), :menuNone);
+        Menu.addItem(format("$1$?", [Ui.loadResource(Rez.Strings.titleActivityDiscard)]), :menuNone);
       }
     }
   }
