@@ -2,15 +2,8 @@
   - Added support for Vivoactive 3
 
 * 2.13
-  - Using latest SDK (8.2.1) while keeping minimum supported API Level to 3.1.0
-  - Cleaned build directory and added it to .gitignore
-  - Made 'getValue' methods static in PickerGeneric classes
-  - Removed unnecessary type casting in 'getInitialView' method
-  - Fixed variable reference for plot buffer size in MyViewVarioplot
-  - Refactored tone and vibration handling to use boolean flags
-  - Updated Kalman filter initialization to use float values
-  - Bugfix: Timestamps in Kalman filter updated to integers to match passed values
-  
+  - Under the hood improvements
+
 * 2.12
   - Added support for Enduro 1
 
