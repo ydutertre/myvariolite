@@ -113,8 +113,8 @@ class MyApp extends App.AppBase {
   private var iTonesLastTick as Number = 0;
 
   // Tones
-  private var iTones as Number = 0;
-  private var iVibrations as Number =0;
+  private var bTones as Boolean = false;
+  private var bVibrations as Boolean = false;
   private var bSinkToneTriggered as Boolean = false;
 
 
@@ -179,7 +179,7 @@ class MyApp extends App.AppBase {
   function getInitialView() {
     //Sys.println("DEBUG: MyApp.getInitialView()");
 
-    return [new MyViewGeneral(), new MyViewGeneralDelegate()] as Array<Ui.Views or Ui.InputDelegates>;
+    return [new MyViewGeneral(), new MyViewGeneralDelegate()];
   }
 
   function onSettingsChanged() {
@@ -323,22 +323,23 @@ class MyApp extends App.AppBase {
 
   function unmuteTones() as Void {
     // Enable tones
-    self.iTones = 0;
+    self.bTones = false;
     if(Toybox.Attention has :playTone) {
       if($.oMySettings.bSoundsVariometerTones) {
-        self.iTones = 1;
+        self.bTones = true;
       }
     }
 
+    self.bVibrations = false;
     if(Toybox.Attention has :vibrate) {
       if($.oMySettings.bVariometerVibrations) {
-        self.iVibrations = 1;
+        self.bVibrations = true;
       }
     }
 
     // Start tones timer
     // NOTE: For variometer tones, we need a 10Hz <-> 100ms resolution;
-    if(self.iTones || self.iVibrations) {
+    if(self.bTones || self.bVibrations) {
       self.iTonesTick = 1000;
       self.iTonesLastTick = 0;
       self.oTonesTimer = new Timer.Timer();
@@ -353,25 +354,25 @@ class MyApp extends App.AppBase {
     // Medium curve in terms of tone length, pause, and one frequency.
     // Tones need to be more frequent than in GliderSK even at low climb rates to be able to
     // properly map thermals (especially broken up thermals)
-    if(self.iTones || self.iVibrations) {
+    if(self.bTones || self.bVibrations) {
       var fValue = $.oMyProcessing.fVariometer_filtered;
       var iDeltaTick = (self.iTonesTick-self.iTonesLastTick) > 8 ? 8 : self.iTonesTick-self.iTonesLastTick;
       if(fValue >= $.oMySettings.fMinimumClimb && iDeltaTick >= 8.0f - fValue) {
         //Sys.println(format("DEBUG: playTone: variometer @ $1$", [self.iTonesTick]));
         var iToneLength = (iDeltaTick > 2) ? iDeltaTick * 50 - 100: 50;
-        if(self.iTones) {
+        if(self.bTones) {
           var iToneFrequency = (400 + fValue * 100) > 1100 ? 1100 : (400 + fValue * 100).toNumber();
           var toneProfile = [new Attn.ToneProfile(iToneFrequency, iToneLength)]; //contrary to Garmin API Doc, first parameter seems to be frequency, and second length
           Attn.playTone({:toneProfile=>toneProfile});
         }
-        if(self.iVibrations) {
+        if(self.bVibrations) {
           var vibeData = [new Attn.VibeProfile(100, (iToneLength > 200) ? iToneLength / 2 : 50)]; //Keeping vibration length shorter than tone for battery and wrist!
           Attn.vibrate(vibeData);
         }
         self.iTonesLastTick = self.iTonesTick;
         return;
       }
-      else if(fValue <= $.oMySettings.fMinimumSink && !self.bSinkToneTriggered && self.iTones) {
+      else if(fValue <= $.oMySettings.fMinimumSink && !self.bSinkToneTriggered && self.bTones) {
         var toneProfile = [new Attn.ToneProfile(220, 2000)];
         Attn.playTone({:toneProfile=>toneProfile});
         self.bSinkToneTriggered = true;

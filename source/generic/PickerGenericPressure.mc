@@ -104,7 +104,7 @@ class PickerGenericPressure extends Ui.Picker {
   // FUNCTIONS: self
   //
 
-  function getValue(_amValues as Array, _iUnit as Number?) as Float {
+  static function getValue(_amValues as Array, _iUnit as Number?) as Float {
     // Input validation
     // ... unit
     var iUnit = _iUnit != null ? _iUnit : -1;

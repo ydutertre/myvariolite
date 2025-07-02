@@ -53,7 +53,7 @@ class PickerGenericOnOff extends Ui.Picker {
   // FUNCTIONS: self
   //
 
-  function getValue(_amValues as Array) as Boolean {
+  static function getValue(_amValues as Array) as Boolean {
     // Return value
     return _amValues[0];
   }
