@@ -65,7 +65,7 @@ class MyViewVarioplot extends MyViewHeader {
   private var iLayoutValueXright as Number = 200;
   private var iLayoutValueYtop as Number = 30;
   private var iLayoutValueYbottom as Number = 193;
-  private var iDotRadius = 5 as Number;
+  private var iDotRadius as Number = 5;
 
   // Color scale
   private var aiScale as Array<Number> = [-3000, -2000, -1000, -50, 50, 1000, 2000, 3000] as Array<Number>;
