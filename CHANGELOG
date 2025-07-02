@@ -1,3 +1,6 @@
+* 2.14
+  - Added support for Vivoactive 3
+
 * 2.13
   - Using latest SDK (8.2.1) while keeping minimum supported API Level to 3.1.0
   - Cleaned build directory and added it to .gitignore
