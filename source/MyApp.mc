@@ -179,7 +179,7 @@ class MyApp extends App.AppBase {
   function getInitialView() {
     //Sys.println("DEBUG: MyApp.getInitialView()");
 
-    return [new MyViewGeneral(), new MyViewGeneralDelegate()] as Array<Ui.Views or Ui.InputDelegates>;
+    return [new MyViewGeneral(), new MyViewGeneralDelegate()];
   }
 
   function onSettingsChanged() {
