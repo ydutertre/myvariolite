@@ -117,6 +117,8 @@ class MyApp extends App.AppBase {
   private var bVibrations as Boolean = false;
   private var bSinkToneTriggered as Boolean = false;
 
+  // Manager Instances
+  private var oActivityManager as MyActivityManager = new MyActivityManager();
 
   //
   // FUNCTIONS: App.AppBase (override/implement)
@@ -257,15 +259,7 @@ class MyApp extends App.AppBase {
     }
 
     // Automatic Activity recording
-    if($.oMySettings.bActivityAutoStart and LangUtils.notNaN($.oMyProcessing.fGroundSpeed)) {
-      if($.oMyActivity == null) {
-        if($.oMySettings.fActivityAutoSpeedStart > 0.0f
-           and $.oMyProcessing.fGroundSpeed > $.oMySettings.fActivityAutoSpeedStart) {
-          $.oMyActivity = new MyActivity();
-          ($.oMyActivity as MyActivity).start();
-        }
-      }
-    }
+    self.oActivityManager.checkAutoStart();
 
     // UI update
     self.updateUi(iEpoch);
