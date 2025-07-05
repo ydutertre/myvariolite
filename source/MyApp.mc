@@ -119,6 +119,7 @@ class MyApp extends App.AppBase {
 
   // Manager Instances
   private var oActivityManager as MyActivityManager = new MyActivityManager();
+  private var oLocationManager as MyLocationManager = new MyLocationManager();
 
   //
   // FUNCTIONS: App.AppBase (override/implement)
@@ -142,7 +143,7 @@ class MyApp extends App.AppBase {
     Sensor.enableSensorEvents(method(:onSensorEvent));
 
     // Enable position events
-    Pos.enableLocationEvents(Pos.LOCATION_CONTINUOUS, method(:onLocationEvent));
+    self.oLocationManager.enableLocationEvents(method(:onLocationEvent));
 
     // Start UI update timer (every multiple of 5 seconds, to save energy)
     // NOTE: in normal circumstances, UI update will be triggered by position events (every ~1 second)
@@ -172,7 +173,7 @@ class MyApp extends App.AppBase {
     }
 
     // Disable position events
-    Pos.enableLocationEvents(Pos.LOCATION_DISABLE, method(:onLocationEvent));
+    self.oLocationManager.disableLocationEvents(method(:onLocationEvent));
 
     // Disable sensor events
     Sensor.enableSensorEvents(null);
@@ -242,21 +243,8 @@ class MyApp extends App.AppBase {
     var oTimeNow = Time.now();
     var iEpoch = oTimeNow.value();
 
-    // Save location
-    if(_oInfo has :position) {
-      $.oMyPositionLocation = _oInfo.position;
-    }
-
-    // Save altitude
-    if(_oInfo has :altitude and _oInfo.altitude != null) {
-      $.fMyPositionAltitude = _oInfo.altitude as Float;
-    }
-
     // Process position data
-    $.oMyProcessing.processPositionInfo(_oInfo, iEpoch);
-    if($.oMyActivity != null) {
-      ($.oMyActivity as MyActivity).processPositionInfo(_oInfo, iEpoch, oTimeNow);
-    }
+    self.oLocationManager.processLocationEvent(_oInfo, iEpoch, oTimeNow);
 
     // Automatic Activity recording
     self.oActivityManager.checkAutoStart();
@@ -296,9 +284,7 @@ class MyApp extends App.AppBase {
     }
 
     // Check position data age
-    if($.oMyProcessing.iPositionEpoch >= 0 and _iEpoch-$.oMyProcessing.iPositionEpoch > 10) {
-      $.oMyProcessing.resetPositionData();
-    }
+    self.oLocationManager.checkPositionDataAge(_iEpoch);
 
     // Update UI
     if($.oMyView != null) {
