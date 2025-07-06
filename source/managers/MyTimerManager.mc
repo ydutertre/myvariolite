@@ -137,7 +137,6 @@ class MyTimerManager {
     if(self.tonesCallback != null) {
       self.tonesCallback.invoke();
     }
-    self.iTonesTick++;
   }
 
 }
