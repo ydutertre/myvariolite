@@ -113,6 +113,10 @@ class MyTimerManager {
     self.iTonesLastTick = tick;
   }
 
+  function incrementTonesTick() as Void {
+    self.iTonesTick++;
+  }
+
   //
   // TIMER CALLBACKS
   //
@@ -130,10 +134,10 @@ class MyTimerManager {
   }
 
   function onTonesTimer() as Void {
-    self.iTonesTick++;
     if(self.tonesCallback != null) {
       self.tonesCallback.invoke();
     }
+    self.iTonesTick++;
   }
 
 }

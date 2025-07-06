@@ -205,6 +205,7 @@ class MyApp extends App.AppBase {
   function onTonesTimerCallback() as Void {
     //Sys.println("DEBUG: MyApp.onTonesTimerCallback()");
     self.oAudioManager.playTones();
+    self.oTimerManager.incrementTonesTick();
   }
 
   //
