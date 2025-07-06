@@ -120,6 +120,7 @@ class MyApp extends App.AppBase {
   // Manager Instances
   private var oActivityManager as MyActivityManager = new MyActivityManager();
   private var oLocationManager as MyLocationManager = new MyLocationManager();
+  private var oSensorManager as MySensorManager = new MySensorManager();
 
   //
   // FUNCTIONS: App.AppBase (override/implement)
@@ -139,8 +140,7 @@ class MyApp extends App.AppBase {
     self.loadSettings();
 
     // Enable sensor events
-    Sensor.setEnabledSensors([] as Array<Sensor.SensorType>);  // ... we need just the acceleration
-    Sensor.enableSensorEvents(method(:onSensorEvent));
+    self.oSensorManager.enableSensorEvents(method(:onSensorEvent));
 
     // Enable position events
     self.oLocationManager.enableLocationEvents(method(:onLocationEvent));
@@ -176,7 +176,7 @@ class MyApp extends App.AppBase {
     self.oLocationManager.disableLocationEvents(method(:onLocationEvent));
 
     // Disable sensor events
-    Sensor.enableSensorEvents(null);
+    self.oSensorManager.disableSensorEvents();
   }
 
   function getInitialView() {
@@ -214,28 +214,7 @@ class MyApp extends App.AppBase {
     //Sys.println("DEBUG: MyApp.onSensorEvent());
 
     // Process altimeter data
-    var oActivityInfo = Activity.getActivityInfo();  // ... we need *raw ambient* pressure
-    if(oActivityInfo != null) {
-      if(oActivityInfo has :rawAmbientPressure and oActivityInfo.rawAmbientPressure != null) {
-        $.oMyAltimeter.setQFE(oActivityInfo.rawAmbientPressure as Float);
-        //Sys.println(format("First altimeter run $1$", [$.oMyAltimeter.bFirstRun]));        
-        //Initial automated calibration based on watch altitude
-        if($.oMyAltimeter.bFirstRun && _oInfo has :altitude && _oInfo.altitude != null) {
-          $.oMyAltimeter.bFirstRun = false;
-          $.oMyAltimeter.setAltitudeActual(_oInfo.altitude);
-          $.oMySettings.saveAltimeterCalibrationQNH($.oMyAltimeter.fQNH);
-        }
-      }
-    }
-
-    // Process sensor data
-    $.oMyProcessing.processSensorInfo(_oInfo, Time.now().value());
-
-    // Save FIT fields
-    if($.oMyActivity != null) {
-      ($.oMyActivity as MyActivity).setBarometricAltitude($.oMyProcessing.fAltitude);
-      ($.oMyActivity as MyActivity).setVerticalSpeed($.oMyProcessing.fVariometer);
-    }
+    self.oSensorManager.processSensorEvent(_oInfo);
   }
 
   function onLocationEvent(_oInfo as Pos.Info) as Void {
@@ -278,10 +257,7 @@ class MyApp extends App.AppBase {
     //Sys.println("DEBUG: MyApp.updateUi()");
 
     // Check sensor data age
-    if($.oMyProcessing.iSensorEpoch >= 0 and _iEpoch-$.oMyProcessing.iSensorEpoch > 10) {
-      $.oMyProcessing.resetSensorData();
-      $.oMyAltimeter.reset();
-    }
+    self.oSensorManager.checkSensorDataAge(_iEpoch);
 
     // Check position data age
     self.oLocationManager.checkPositionDataAge(_iEpoch);
