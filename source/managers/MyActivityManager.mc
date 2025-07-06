@@ -28,32 +28,17 @@ class MyActivityManager {
   }
   
   function checkAutoStart() as Void {
-    // Early exit if auto-start is disabled
-    if (!$.oMySettings.bActivityAutoStart) {
-        return;
-    }
-    
-    // Early exit if activity is already running
-    if ($.oMyActivity != null) {
+    // Exit if auto-start is disabled or activity is already running
+    if (!$.oMySettings.bActivityAutoStart or $.oMyActivity != null) {
         return;
     }
 
-    // Validate ground speed data availability and threshold
+    // Get ground speed and speed threshold
     var fGroundSpeed = $.oMyProcessing.fGroundSpeed;
     var fMinSpeedThreshold = $.oMySettings.fActivityAutoSpeedStart;
-    
-    // No valid ground speed data
-    if (LangUtils.isNaN(fGroundSpeed)) {
-        return;
-    }
-    
-    // Invalid speed threshold
-    if (fMinSpeedThreshold <= 0.0f) {
-        return;
-    }
-    
-    // Check if ground speed exceeds threshold to start activity
-    if (fGroundSpeed > fMinSpeedThreshold) {
+
+    // Validate data and start activity if conditions are met
+    if (LangUtils.notNaN(fGroundSpeed) and fMinSpeedThreshold > 0.0f and fGroundSpeed > fMinSpeedThreshold) {
         $.oMyActivity = new MyActivity();
         ($.oMyActivity as MyActivity).start();
     }
