@@ -103,20 +103,13 @@ class MyApp extends App.AppBase {
   // VARIABLES
   //
 
-  // Timers
-  // ... UI update
-  private var oUpdateTimer as Timer.Timer?;
-  private var iUpdateLastEpoch as Number = 0;
-  // ... tones
-  private var oTonesTimer as Timer.Timer?;
-  private var iTonesTick as Number = 1000;
-  private var iTonesLastTick as Number = 0;
-
-  // Tones
-  private var bTones as Boolean = false;
-  private var bVibrations as Boolean = false;
-  private var bSinkToneTriggered as Boolean = false;
-
+  // Manager instances
+  private var oTimerManager as MyTimerManager = new MyTimerManager();
+  private var oSensorManager as MySensorManager = new MySensorManager();
+  private var oLocationManager as MyLocationManager = new MyLocationManager();
+  private var oAudioManager as MyAudioManager = new MyAudioManager(self.oTimerManager);
+  private var oActivityManager as MyActivityManager = new MyActivityManager();
+  private var oUiManager as MyUIManager = new MyUIManager(self.oSensorManager, self.oLocationManager, self.oTimerManager);
 
   //
   // FUNCTIONS: App.AppBase (override/implement)
@@ -124,6 +117,10 @@ class MyApp extends App.AppBase {
 
   function initialize() {
     AppBase.initialize();
+
+    // Set up callbacks
+    self.oTimerManager.setUpdateCallback(method(:onUpdateTimerCallback));
+    self.oTimerManager.setTonesCallback(method(:onTonesTimerCallback));
 
     // Timers
     $.oMyTimeStart = Time.now();
@@ -136,44 +133,27 @@ class MyApp extends App.AppBase {
     self.loadSettings();
 
     // Enable sensor events
-    Sensor.setEnabledSensors([] as Array<Sensor.SensorType>);  // ... we need just the acceleration
-    Sensor.enableSensorEvents(method(:onSensorEvent));
+    self.oSensorManager.enableSensorEvents(method(:onSensorEvent));
 
     // Enable position events
-    Pos.enableLocationEvents(Pos.LOCATION_CONTINUOUS, method(:onLocationEvent));
+    self.oLocationManager.enableLocationEvents(method(:onLocationEvent));
 
-    // Start UI update timer (every multiple of 5 seconds, to save energy)
-    // NOTE: in normal circumstances, UI update will be triggered by position events (every ~1 second)
-    self.oUpdateTimer = new Timer.Timer();
-    var iUpdateTimerDelay = (60-Sys.getClockTime().sec)%5;
-    if(iUpdateTimerDelay > 0) {
-      (self.oUpdateTimer as Timer.Timer).start(method(:onUpdateTimer_init), 1000*iUpdateTimerDelay, false);
-    }
-    else {
-      (self.oUpdateTimer as Timer.Timer).start(method(:onUpdateTimer), 5000, true);
-    }
+    // Start UI update timer
+    self.oTimerManager.startUpdateTimer();
   }
 
   function onStop(state) {
     //Sys.println("DEBUG: MyApp.onStop()");
 
     // Stop timers
-    // ... UI update
-    if(self.oUpdateTimer != null) {
-      (self.oUpdateTimer as Timer.Timer).stop();
-      self.oUpdateTimer = null;
-    }
-    // ... tones
-    if(self.oTonesTimer != null) {
-      (self.oTonesTimer as Timer.Timer).stop();
-      self.oTonesTimer = null;
-    }
+    self.oTimerManager.stopUpdateTimer();
+    self.oAudioManager.muteTones();
 
     // Disable position events
-    Pos.enableLocationEvents(Pos.LOCATION_DISABLE, method(:onLocationEvent));
+    self.oLocationManager.disableLocationEvents(method(:onLocationEvent));
 
     // Disable sensor events
-    Sensor.enableSensorEvents(null);
+    self.oSensorManager.disableSensorEvents();
   }
 
   function getInitialView() {
@@ -185,12 +165,51 @@ class MyApp extends App.AppBase {
   function onSettingsChanged() {
     //Sys.println("DEBUG: MyApp.onSettingsChanged()");
     self.loadSettings();
-    self.updateUi(Time.now().value());
+    self.oUiManager.updateUi(Time.now().value());
   }
 
+  //
+  // FUNCTIONS: Event Handlers
+  //
+
+  function onSensorEvent(_oInfo as Sensor.Info) as Void {
+    //Sys.println("DEBUG: MyApp.onSensorEvent());
+
+    // Process altimeter data
+    self.oSensorManager.processSensorEvent(_oInfo);
+  }
+
+  function onLocationEvent(_oInfo as Pos.Info) as Void {
+    //Sys.println("DEBUG: MyApp.onLocationEvent()");
+    var oTimeNow = Time.now();
+    var iEpoch = oTimeNow.value();
+
+    // Process position data
+    self.oLocationManager.processLocationEvent(_oInfo, iEpoch, oTimeNow);
+
+    // Automatic Activity recording
+    self.oActivityManager.checkAutoStart();
+
+    // UI update
+    self.oUiManager.updateUi(iEpoch);
+  }
+
+  function onUpdateTimerCallback() as Void {
+    //Sys.println("DEBUG: MyApp.onUpdateTimerCallback()");
+    var iEpoch = Time.now().value();
+    if (self.oUiManager.shouldUpdateUi(iEpoch)) {
+      self.oUiManager.updateUi(iEpoch);
+    }
+  }
+
+  function onTonesTimerCallback() as Void {
+    //Sys.println("DEBUG: MyApp.onTonesTimerCallback()");
+    self.oAudioManager.playTones();
+    self.oTimerManager.incrementTonesTick();
+  }
 
   //
-  // FUNCTIONS: self
+  // FUNCTIONS: Settings Management
   //
 
   function loadSettings() as Void {
@@ -200,188 +219,23 @@ class MyApp extends App.AppBase {
     $.oMySettings.load();
 
     // Apply settings
-
     $.oMyAltimeter.importSettings();
 
     // ... tones
-    self.muteTones();
+    self.oAudioManager.muteTones();
   }
 
-  function onSensorEvent(_oInfo as Sensor.Info) as Void {
-    //Sys.println("DEBUG: MyApp.onSensorEvent());
-
-    // Process altimeter data
-    var oActivityInfo = Activity.getActivityInfo();  // ... we need *raw ambient* pressure
-    if(oActivityInfo != null) {
-      if(oActivityInfo has :rawAmbientPressure and oActivityInfo.rawAmbientPressure != null) {
-        $.oMyAltimeter.setQFE(oActivityInfo.rawAmbientPressure as Float);
-        //Sys.println(format("First altimeter run $1$", [$.oMyAltimeter.bFirstRun]));        
-        //Initial automated calibration based on watch altitude
-        if($.oMyAltimeter.bFirstRun && _oInfo has :altitude && _oInfo.altitude != null) {
-          $.oMyAltimeter.bFirstRun = false;
-          $.oMyAltimeter.setAltitudeActual(_oInfo.altitude);
-          $.oMySettings.saveAltimeterCalibrationQNH($.oMyAltimeter.fQNH);
-        }
-      }
-    }
-
-    // Process sensor data
-    $.oMyProcessing.processSensorInfo(_oInfo, Time.now().value());
-
-    // Save FIT fields
-    if($.oMyActivity != null) {
-      ($.oMyActivity as MyActivity).setBarometricAltitude($.oMyProcessing.fAltitude);
-      ($.oMyActivity as MyActivity).setVerticalSpeed($.oMyProcessing.fVariometer);
-    }
-  }
-
-  function onLocationEvent(_oInfo as Pos.Info) as Void {
-    //Sys.println("DEBUG: MyApp.onLocationEvent()");
-    var oTimeNow = Time.now();
-    var iEpoch = oTimeNow.value();
-
-    // Save location
-    if(_oInfo has :position) {
-      $.oMyPositionLocation = _oInfo.position;
-    }
-
-    // Save altitude
-    if(_oInfo has :altitude and _oInfo.altitude != null) {
-      $.fMyPositionAltitude = _oInfo.altitude as Float;
-    }
-
-    // Process position data
-    $.oMyProcessing.processPositionInfo(_oInfo, iEpoch);
-    if($.oMyActivity != null) {
-      ($.oMyActivity as MyActivity).processPositionInfo(_oInfo, iEpoch, oTimeNow);
-    }
-
-    // Automatic Activity recording
-    if($.oMySettings.bActivityAutoStart and LangUtils.notNaN($.oMyProcessing.fGroundSpeed)) {
-      if($.oMyActivity == null) {
-        if($.oMySettings.fActivityAutoSpeedStart > 0.0f
-           and $.oMyProcessing.fGroundSpeed > $.oMySettings.fActivityAutoSpeedStart) {
-          $.oMyActivity = new MyActivity();
-          ($.oMyActivity as MyActivity).start();
-        }
-      }
-    }
-
-    // UI update
-    self.updateUi(iEpoch);
-  }
-
-  function onUpdateTimer_init() as Void {
-    //Sys.println("DEBUG: MyApp.onUpdateTimer_init()");
-    self.onUpdateTimer();
-    self.oUpdateTimer = new Timer.Timer();
-    (self.oUpdateTimer as Timer.Timer).start(method(:onUpdateTimer), 5000, true);
-  }
-
-  function onUpdateTimer() as Void {
-    //Sys.println("DEBUG: MyApp.onUpdateTimer()");
-    var iEpoch = Time.now().value();
-    if(iEpoch-self.iUpdateLastEpoch > 1) {
-      self.updateUi(iEpoch);
-    }
-  }
-
-  function onTonesTimer() as Void {
-    //Sys.println("DEBUG: MyApp.onTonesTimer()");
-    self.playTones();
-    self.iTonesTick++;
-  }
-
-  function updateUi(_iEpoch as Number) as Void {
-    //Sys.println("DEBUG: MyApp.updateUi()");
-
-    // Check sensor data age
-    if($.oMyProcessing.iSensorEpoch >= 0 and _iEpoch-$.oMyProcessing.iSensorEpoch > 10) {
-      $.oMyProcessing.resetSensorData();
-      $.oMyAltimeter.reset();
-    }
-
-    // Check position data age
-    if($.oMyProcessing.iPositionEpoch >= 0 and _iEpoch-$.oMyProcessing.iPositionEpoch > 10) {
-      $.oMyProcessing.resetPositionData();
-    }
-
-    // Update UI
-    if($.oMyView != null) {
-      ($.oMyView as MyView).updateUi();
-      self.iUpdateLastEpoch = _iEpoch;
-    }
-  }
+  //
+  // FUNCTIONS: Audio Management
+  // NOTE: For Use in MyView*.mc
+  //
 
   function muteTones() as Void {
-    // Stop tones timers
-    if(self.oTonesTimer != null) {
-      (self.oTonesTimer as Timer.Timer).stop();
-      self.oTonesTimer = null;
-    }
+    self.oAudioManager.muteTones();
   }
 
   function unmuteTones() as Void {
-    // Enable tones
-    self.bTones = false;
-    if(Toybox.Attention has :playTone) {
-      if($.oMySettings.bSoundsVariometerTones) {
-        self.bTones = true;
-      }
-    }
-
-    self.bVibrations = false;
-    if(Toybox.Attention has :vibrate) {
-      if($.oMySettings.bVariometerVibrations) {
-        self.bVibrations = true;
-      }
-    }
-
-    // Start tones timer
-    // NOTE: For variometer tones, we need a 10Hz <-> 100ms resolution;
-    if(self.bTones || self.bVibrations) {
-      self.iTonesTick = 1000;
-      self.iTonesLastTick = 0;
-      self.oTonesTimer = new Timer.Timer();
-      self.oTonesTimer.start(method(:onTonesTimer), 100, true);
-    }
-  }
-
-  function playTones() as Void {
-    //Sys.println(format("DEBUG: MyApp.playTones() @ $1$", [self.iTonesTick]));
-    // Variometer
-    // ALGO: Tones "tick" is 100ms; I try to do a curve that is similar to the Skybean vario
-    // Medium curve in terms of tone length, pause, and one frequency.
-    // Tones need to be more frequent than in GliderSK even at low climb rates to be able to
-    // properly map thermals (especially broken up thermals)
-    if(self.bTones || self.bVibrations) {
-      var fValue = $.oMyProcessing.fVariometer_filtered;
-      var iDeltaTick = (self.iTonesTick-self.iTonesLastTick) > 8 ? 8 : self.iTonesTick-self.iTonesLastTick;
-      if(fValue >= $.oMySettings.fMinimumClimb && iDeltaTick >= 8.0f - fValue) {
-        //Sys.println(format("DEBUG: playTone: variometer @ $1$", [self.iTonesTick]));
-        var iToneLength = (iDeltaTick > 2) ? iDeltaTick * 50 - 100: 50;
-        if(self.bTones) {
-          var iToneFrequency = (400 + fValue * 100) > 1100 ? 1100 : (400 + fValue * 100).toNumber();
-          var toneProfile = [new Attn.ToneProfile(iToneFrequency, iToneLength)]; //contrary to Garmin API Doc, first parameter seems to be frequency, and second length
-          Attn.playTone({:toneProfile=>toneProfile});
-        }
-        if(self.bVibrations) {
-          var vibeData = [new Attn.VibeProfile(100, (iToneLength > 200) ? iToneLength / 2 : 50)]; //Keeping vibration length shorter than tone for battery and wrist!
-          Attn.vibrate(vibeData);
-        }
-        self.iTonesLastTick = self.iTonesTick;
-        return;
-      }
-      else if(fValue <= $.oMySettings.fMinimumSink && !self.bSinkToneTriggered && self.bTones) {
-        var toneProfile = [new Attn.ToneProfile(220, 2000)];
-        Attn.playTone({:toneProfile=>toneProfile});
-        self.bSinkToneTriggered = true;
-      }
-      //Reset minimum sink tone if we get significantly above it
-      if(fValue >= $.oMySettings.fMinimumSink + 1.0f && self.bSinkToneTriggered) {
-        self.bSinkToneTriggered = false;
-      }
-    }
+    self.oAudioManager.unmuteTones();
   }
 
 }
