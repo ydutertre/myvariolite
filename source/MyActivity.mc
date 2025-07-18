@@ -119,10 +119,11 @@ class MyActivity {
 
     // Session (recording)
     // SPORT_FLYING = 20 (since API 3.0.10)
+    // SUB_SPORT_GENERIC = 0 (since API 1.0.0)
     oSession = AR.createSession({
         :name => "My Vario",
         :sport => 20 as AR.Sport2,
-        :subSport => AR.SUB_SPORT_GENERIC});
+        :subSport => 0 as AR.SubSport});
 
     // FIT fields
 
