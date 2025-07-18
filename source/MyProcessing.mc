@@ -295,7 +295,7 @@ class MyProcessing {
     if(self.fGroundSpeed >= 1.0f and _oInfo has :heading and _oInfo.heading != null) {
       fValue = _oInfo.heading as Float;
       if(fValue < 0.0f) {
-        fValue += 6.28318530718f;
+        fValue += 2 * Math.PI;
       }
       self.fHeading = fValue;
     }
@@ -444,7 +444,7 @@ class MyProcessing {
 
   function windStep() as Void {
     if(LangUtils.notNaN(self.fHeading) && LangUtils.notNaN(self.fGroundSpeed) && self.fHeading != null && self.fGroundSpeed != null) {
-      self.iAngle = ((self.fHeading * 57.2957795131f).toNumber()) % 360;
+      self.iAngle = Math.toDegrees(self.fHeading).toNumber() % 360;
       self.fSpeed = self.fGroundSpeed;      
     } else {
       return;
