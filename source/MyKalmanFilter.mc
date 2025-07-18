@@ -35,7 +35,8 @@ class MyKalmanFilter {
   //
 
   private const ACCELERATION_VARIANCE = 0.36f; //Value 0.36 taken from Arduino-vario, when no accelerometer present (as of now, because gyro data isn't accessible, the watch accelerometer can't be used)
-  
+  private const MAX_ACCELERATION_HISTORY = 5;  // Tune this number if needed
+  private var afAccelerationHistory as Array<Float> = [];
 
   //
   // VARIABLES
@@ -71,6 +72,10 @@ class MyKalmanFilter {
     self.p21 = 0.0f;
     self.p22 = 0.0f;
 
+    // Init acceleration buffer
+    self.afAccelerationHistory = [];
+    self.afAccelerationHistory.add(_fStartA);
+
     self.bFilterReady = true;
   }
 
@@ -81,11 +86,18 @@ class MyKalmanFilter {
     if (dt == 0.0f) { return;}
     self.iTimestamp = _iTimestamp;
 
+    // Acceleration Variance
+    var fAccelVariance = self.ACCELERATION_VARIANCE;
+    if (_fAcceleration != 0.0f) {
+      self.updateAccelerationHistory(_fAcceleration);
+      fAccelVariance = self.computeAccelerationVariance();
+    }
+
     // Variance
     var fAltitudeVariance = $.oMySettings.fVariometerSmoothing * $.oMySettings.fVariometerSmoothing;
 
     //Prediction
-    self.predictState(dt, _fAcceleration, self.ACCELERATION_VARIANCE);
+    self.predictState(dt, _fAcceleration, fAccelVariance);
 
     //Gaussian Product
     self.updateState(_fPosition, fAltitudeVariance);
@@ -94,6 +106,25 @@ class MyKalmanFilter {
   //
   // Private Functions
   //
+
+  private function updateAccelerationHistory(_fAcceleration as Float) as Void {
+    self.afAccelerationHistory.add(_fAcceleration);
+    if (self.afAccelerationHistory.size() > self.MAX_ACCELERATION_HISTORY) {
+      self.afAccelerationHistory = self.afAccelerationHistory.slice(1, null);
+    }
+  }
+
+  private function computeAccelerationVariance() as Float {
+    // Compute the acceleration variance
+    var fVariance = Math.variance(self.afAccelerationHistory, null);
+
+    // Clamp lower floor to prevent overconfidence and instability
+    if (fVariance < 0.001f) {
+      fVariance = 0.001f;
+    }
+
+    return fVariance;
+  }
 
   private function predictState(_fDt as Float, _fAcceleration as Float, _fAccelerationVariance as Float) as Void {
     // Values
