@@ -44,7 +44,7 @@ class MySettings {
   //
   // CONSTANTS
   //
-  
+
   private const VARIO_RANGE_VALUES as Array<Float> = [3.0f, 6.0f, 9.0f];
   private const VARIO_SMOOTH_VALUES as Array<Float> = [0.2f, 0.5f, 0.7f, 1.0f];
   private const MIN_CLIMB_VALUES as Array<Float> = [0.0f, 0.1f, 0.2f, 0.3f, 0.4f, 0.5f];
@@ -135,8 +135,7 @@ class MySettings {
   }
 
   function loadAltimeterCalibrationQNH() as Float {  // [Pa]
-    var fValue = App.Properties.getValue("userAltimeterCalibrationQNH") as Float?;
-    return fValue != null ? fValue : 101325.0f;
+    return self.loadValue("userAltimeterCalibrationQNH", 101325.0f) as Float;
   }
   function saveAltimeterCalibrationQNH(_fValue as Float) as Void {  // [Pa]
     App.Properties.setValue("userAltimeterCalibrationQNH", _fValue as App.PropertyValueType);
@@ -153,8 +152,7 @@ class MySettings {
   }
 
   function loadVariometerRange() as Number {
-    var iValue = App.Properties.getValue("userVariometerRange") as Number?;
-    return iValue != null ? iValue : 0;
+    return self.loadValue("userVariometerRange", 0) as Number;
   }
   function saveVariometerRange(_iValue as Number) as Void {
     App.Properties.setValue("userVariometerRange", _iValue as App.PropertyValueType);
@@ -165,8 +163,7 @@ class MySettings {
   }
 
   function loadVariometerPlotRange() as Number {
-    var iValue = App.Properties.getValue("userVariometerPlotRange") as Number?;
-    return iValue != null ? iValue : 1;
+    return self.loadValue("userVariometerPlotRange", 1) as Number;
   }
   function saveVariometerPlotRange(_iValue as Number) as Void {
     App.Properties.setValue("userVariometerPlotRange", _iValue as App.PropertyValueType);
@@ -182,8 +179,7 @@ class MySettings {
   }
 
   function loadVariometerAutoThermal() as Boolean {
-    var bValue = App.Properties.getValue("userVariometerAutoThermal") as Boolean?;
-    return bValue != null ? bValue : true;
+    return self.loadValue("userVariometerAutoThermal", true) as Boolean;
   }
   function saveVariometerAutoThermal(_bValue as Boolean) as Void {
     App.Properties.setValue("userVariometerAutoThermal", _bValue as App.PropertyValueType);
@@ -193,8 +189,7 @@ class MySettings {
   }
 
   function loadVariometerThermalDetect() as Boolean {
-    var bValue = App.Properties.getValue("userVariometerThermalDetect") as Boolean?;
-    return bValue != null ? bValue : true;
+    return self.loadValue("userVariometerThermalDetect", true) as Boolean;
   }
   function saveVariometerThermalDetect(_bValue as Boolean) as Void {
     App.Properties.setValue("userVariometerThermalDetect", _bValue as App.PropertyValueType);
@@ -203,9 +198,8 @@ class MySettings {
     self.bVariometerThermalDetect = _bValue;
   }
 
-  function loadVariometerSmoothing() as Number { 
-    var iValue = App.Properties.getValue("userVariometerSmoothing") as Number?;
-    return iValue != null ? iValue : 1;
+  function loadVariometerSmoothing() as Number {
+    return self.loadValue("userVariometerSmoothing", 1) as Number;
   }
   function saveVariometerSmoothing(_iValue as Number) as Void { 
     App.Properties.setValue("userVariometerSmoothing", _iValue as App.PropertyValueType);
@@ -216,8 +210,7 @@ class MySettings {
   }
 
   function loadSoundsVariometerTones() as Boolean {
-    var bValue = App.Properties.getValue("userSoundsVariometerTones") as Boolean?;
-    return bValue != null ? bValue : true;
+    return self.loadValue("userSoundsVariometerTones", true) as Boolean;
   }
   function saveSoundsVariometerTones(_bValue as Boolean) as Void {
     App.Properties.setValue("userSoundsVariometerTones", _bValue as App.PropertyValueType);
@@ -227,8 +220,7 @@ class MySettings {
   }
 
   function loadVariometerVibrations() as Boolean {
-    var bValue = App.Properties.getValue("userVariometerVibrations") as Boolean?;
-    return bValue != null ? bValue : true;
+    return self.loadValue("userVariometerVibrations", true) as Boolean;
   }
   function saveVariometerVibrations(_bValue as Boolean) as Void {
     App.Properties.setValue("userVariometerVibrations", _bValue as App.PropertyValueType);
@@ -237,9 +229,8 @@ class MySettings {
     self.bVariometerVibrations = _bValue;
   }
 
-  function loadMinimumClimb() as Number { 
-    var iValue = App.Properties.getValue("userMinimumClimb") as Number?;
-    return iValue != null ? iValue : 2;
+  function loadMinimumClimb() as Number {
+    return self.loadValue("userMinimumClimb", 2) as Number;
   }
   function saveMinimumClimb(_iValue as Number) as Void {  // [m/s]
     App.Properties.setValue("userMinimumClimb", _iValue as App.PropertyValueType);
@@ -249,9 +240,8 @@ class MySettings {
     self.fMinimumClimb = self.MIN_CLIMB_VALUES[self.iMinimumClimb];
   }
 
-  function loadMinimumSink() as Number { 
-    var iValue = App.Properties.getValue("userMinimumSink") as Number?;
-    return iValue != null ? iValue : 1;
+  function loadMinimumSink() as Number {
+    return self.loadValue("userMinimumSink", 1) as Number; 
   }
   function saveMinimumSink(_iValue as Number) as Void {  // [m/s]
     App.Properties.setValue("userMinimumSink", _iValue as App.PropertyValueType);
@@ -262,8 +252,7 @@ class MySettings {
   }
 
   function loadActivityAutoStart() as Boolean {
-    var bValue = App.Properties.getValue("userActivityAutoStart") as Boolean?;
-    return bValue != null ? bValue : true;
+    return self.loadValue("userActivityAutoStart", true) as Boolean;
   }
   function saveActivityAutoStart(_bValue as Boolean) as Void {
     App.Properties.setValue("userActivityAutoStart", _bValue as App.PropertyValueType);
@@ -273,8 +262,7 @@ class MySettings {
   }
 
   function loadActivityAutoSpeedStart() as Float {  // [m/s]
-    var fValue = App.Properties.getValue("userActivityAutoSpeedStart") as Float?;
-    return fValue != null ? fValue : 3.0f;
+    return self.loadValue("userActivityAutoSpeedStart", 3.0f) as Float;
   }
   function saveActivityAutoSpeedStart(_fValue as Float) as Void {  // [m/s]
     App.Properties.setValue("userActivityAutoSpeedStart", _fValue as App.PropertyValueType);
@@ -290,8 +278,7 @@ class MySettings {
   }
 
   function loadGeneralBackgroundColor() as Number {
-    var iValue = App.Properties.getValue("userGeneralBackgroundColor") as Number?;
-    return iValue != null ? iValue : Gfx.COLOR_WHITE;
+    return self.loadValue("userGeneralBackgroundColor", Gfx.COLOR_WHITE) as Number;
   }
   function saveGeneralBackgroundColor(_iValue as Number) as Void {
     App.Properties.setValue("userGeneralBackgroundColor", _iValue as App.PropertyValueType);
@@ -301,8 +288,7 @@ class MySettings {
   }
   
   function loadUnitDistance() as Number {
-    var iValue = App.Properties.getValue("userUnitDistance") as Number?;
-    return iValue != null ? iValue : -1;
+    return self.loadValue("userUnitDistance", -1) as Number;
   }
   function saveUnitDistance(_iValue as Number) as Void {
     App.Properties.setValue("userUnitDistance", _iValue as App.PropertyValueType);
@@ -348,8 +334,7 @@ class MySettings {
   }
 
   function loadUnitElevation() as Number {
-    var iValue = App.Properties.getValue("userUnitElevation") as Number?;
-    return iValue != null ? iValue : -1;
+    return self.loadValue("userUnitElevation", -1) as Number;
   }
   function saveUnitElevation(_iValue as Number) as Void {
     App.Properties.setValue("userUnitElevation", _iValue as App.PropertyValueType);
@@ -387,8 +372,7 @@ class MySettings {
   }
 
   function loadUnitPressure() as Number {
-    var iValue = App.Properties.getValue("userUnitPressure") as Number?;
-    return iValue != null ? iValue : -1;
+    return self.loadValue("userUnitPressure", -1) as Number;
   }
   function saveUnitPressure(_iValue as Number) as Void {
     App.Properties.setValue("userUnitPressure", _iValue as App.PropertyValueType);
@@ -421,8 +405,7 @@ class MySettings {
   }
 
   function loadUnitDirection() as Number {
-    var iValue = App.Properties.getValue("userUnitDirection") as Number?;
-    return iValue != null ? iValue : 1;
+    return self.loadValue("userUnitDirection", 1) as Number;
   }
   function saveUnitDirection(_iValue as Number) as Void {
     App.Properties.setValue("userUnitDirection", _iValue as App.PropertyValueType);
@@ -442,8 +425,7 @@ class MySettings {
   }
 
   function loadUnitTimeUTC() as Boolean {
-    var bValue = App.Properties.getValue("userUnitTimeUTC") as Boolean?;
-    return bValue != null ? bValue : false;
+    return self.loadValue("userUnitTimeUTC", false) as Boolean;
   }
   function saveUnitTimeUTC(_bValue as Boolean) as Void {
     App.Properties.setValue("userUnitTimeUTC", _bValue as App.PropertyValueType);
@@ -466,6 +448,11 @@ class MySettings {
     if (_iValue < 0) { return 0; }
     if (_iValue >= _fArray.size()) { return _fArray.size() - 1; }
     return _iValue;
+  }
+
+  private function loadValue(_sKey as String, _oDefaultValue as Object) as Object {
+    var val = App.Properties.getValue(_sKey);
+    return val != null ? val : _oDefaultValue;
   }
 
 }
