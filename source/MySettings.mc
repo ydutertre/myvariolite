@@ -42,6 +42,15 @@ using Toybox.WatchUi as Ui;
 class MySettings {
 
   //
+  // CONSTANTS
+  //
+  
+  private const VARIO_RANGE_VALUES as Array<Float> = [3.0f, 6.0f, 9.0f];
+  private const VARIO_SMOOTH_VALUES as Array<Float> = [0.2f, 0.5f, 0.7f, 1.0f];
+  private const MIN_CLIMB_VALUES as Array<Float> = [0.0f, 0.1f, 0.2f, 0.3f, 0.4f, 0.5f];
+  private const MIN_SINK_VALUES as Array<Float> = [-1.0f, -2.0f, -3.0f, -4.0f, -6.0f, -10.0f];
+
+  //
   // VARIABLES
   //
 
@@ -151,18 +160,8 @@ class MySettings {
     App.Properties.setValue("userVariometerRange", _iValue as App.PropertyValueType);
   }
   function setVariometerRange(_iValue as Number) as Void {
-    if(_iValue > 2) {
-      _iValue = 2;
-    }
-    else if(_iValue < 0) {
-      _iValue = 0;
-    }
-    self.iVariometerRange = _iValue;
-    switch(self.iVariometerRange) {
-    case 0: self.fVariometerRange = 3.0f; break;
-    case 1: self.fVariometerRange = 6.0f; break;
-    case 2: self.fVariometerRange = 9.0f; break;
-    }
+    self.iVariometerRange = self.clampIndex(_iValue, self.VARIO_RANGE_VALUES);
+    self.fVariometerRange = self.VARIO_RANGE_VALUES[self.iVariometerRange];
   }
 
   function loadVariometerPlotRange() as Number {
@@ -212,19 +211,8 @@ class MySettings {
     App.Properties.setValue("userVariometerSmoothing", _iValue as App.PropertyValueType);
   }
   function setVariometerSmoothing(_iValue as Number) as Void {
-    if(_iValue > 3) {
-      _iValue = 3;
-    }
-    else if(_iValue < 0) {
-      _iValue = 0;
-    }
-    self.iVariometerSmoothing = _iValue;
-    switch(self.iVariometerSmoothing) {
-    case 0: self.fVariometerSmoothing = 0.2f; break;
-    case 1: self.fVariometerSmoothing = 0.5f; break;
-    case 2: self.fVariometerSmoothing = 0.7f; break;
-    case 3: self.fVariometerSmoothing = 1.0f; break;
-    }
+    self.iVariometerSmoothing = self.clampIndex(_iValue, self.VARIO_SMOOTH_VALUES);
+    self.fVariometerSmoothing = self.VARIO_SMOOTH_VALUES[self.iVariometerSmoothing];
   }
 
   function loadSoundsVariometerTones() as Boolean {
@@ -257,21 +245,8 @@ class MySettings {
     App.Properties.setValue("userMinimumClimb", _iValue as App.PropertyValueType);
   }
   function setMinimumClimb(_iValue as Number) as Void {
-    if(_iValue > 5) {
-      _iValue = 5;
-    }
-    else if(_iValue < 0) {
-      _iValue = 0;
-    }
-    self.iMinimumClimb = _iValue;
-    switch(self.iMinimumClimb) {
-    case 0: self.fMinimumClimb = 0.0f; break;
-    case 1: self.fMinimumClimb = 0.1f; break;
-    case 2: self.fMinimumClimb = 0.2f; break;
-    case 3: self.fMinimumClimb = 0.3f; break;
-    case 4: self.fMinimumClimb = 0.4f; break;
-    case 5: self.fMinimumClimb = 0.5f; break;
-    }
+    self.iMinimumClimb = self.clampIndex(_iValue, self.MIN_CLIMB_VALUES);
+    self.fMinimumClimb = self.MIN_CLIMB_VALUES[self.iMinimumClimb];
   }
 
   function loadMinimumSink() as Number { 
@@ -282,21 +257,8 @@ class MySettings {
     App.Properties.setValue("userMinimumSink", _iValue as App.PropertyValueType);
   }
   function setMinimumSink(_iValue as Number) as Void {
-    if(_iValue > 5) {
-      _iValue = 5;
-    }
-    else if(_iValue < 0) {
-      _iValue = 0;
-    }
-    self.iMinimumSink = _iValue;
-    switch(self.iMinimumSink) {
-    case 0: self.fMinimumSink = -1.0f; break;
-    case 1: self.fMinimumSink = -2.0f; break;
-    case 2: self.fMinimumSink = -3.0f; break;
-    case 3: self.fMinimumSink = -4.0f; break;
-    case 4: self.fMinimumSink = -6.0f; break;
-    case 5: self.fMinimumSink = -10.0f; break;
-    }
+    self.iMinimumSink = self.clampIndex(_iValue, self.MIN_SINK_VALUES);
+    self.fMinimumSink = self.MIN_SINK_VALUES[self.iMinimumSink];
   }
 
   function loadActivityAutoStart() as Boolean {
@@ -494,6 +456,16 @@ class MySettings {
     else {
       self.sUnitTime = "LT";
     }
+  }
+
+  //
+  // Private Functions
+  //
+
+  private function clampIndex(_iValue as Number, _fArray as Array) as Number {
+    if (_iValue < 0) { return 0; }
+    if (_iValue >= _fArray.size()) { return _fArray.size() - 1; }
+    return _iValue;
   }
 
 }

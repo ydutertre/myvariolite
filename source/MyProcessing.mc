@@ -71,7 +71,7 @@ class MyProcessing {
   private var fPreviousAltitude as Float = 0.0f;
   // ... we must estimate wind direction and speed (and estimate whether circling at the same time)
   private var aiAngle as Array<Number> = new Array<Number>[self.DIRECTION_NUM_OF_SECTORS];
-  private var afSpeed as Array<Float> = new Array<Float>[self.DIRECTION_NUM_OF_SECTORS];;
+  private var afSpeed as Array<Float> = new Array<Float>[self.DIRECTION_NUM_OF_SECTORS];
   private var fSpeed as Float = 0.0f;
   private var iAngle as Number = 0;
   private var iWindSectorCount as Number = 0;
@@ -108,15 +108,15 @@ class MyProcessing {
   public var bAutoThermalTriggered as Boolean = false;
   // ... plot buffer (using integer-only operations!)
   public var iPlotIndex as Number = -1;
-  public var aiPlotEpoch as Array<Number> = new Array<Number>[self.DIRECTION_NUM_OF_SECTORS];;
-  public var aiPlotLatitude as Array<Number> = new Array<Number>[self.DIRECTION_NUM_OF_SECTORS];;
-  public var aiPlotLongitude as Array<Number> = new Array<Number>[self.DIRECTION_NUM_OF_SECTORS];;
-  public var aiPlotVariometer as Array<Number> = new Array<Number>[self.DIRECTION_NUM_OF_SECTORS];;
+  public var aiPlotEpoch as Array<Number> = new Array<Number>[self.PLOTBUFFER_SIZE];
+  public var aiPlotLatitude as Array<Number> = new Array<Number>[self.PLOTBUFFER_SIZE];
+  public var aiPlotLongitude as Array<Number> = new Array<Number>[self.PLOTBUFFER_SIZE];
+  public var aiPlotVariometer as Array<Number> = new Array<Number>[self.PLOTBUFFER_SIZE];
   // Thermal core calculation
   public var iCenterLongitude as Number = 0;
   public var iCenterLatitude as Number = 0;
   public var iStandardDev as Number = 0;
-  public var aiPointAltitude as Array<Number> = new Array<Number>[self.DIRECTION_NUM_OF_SECTORS];;
+  public var aiPointAltitude as Array<Number> = new Array<Number>[self.PLOTBUFFER_SIZE];
 
 
   //
