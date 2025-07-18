@@ -34,7 +34,7 @@ class MyKalmanFilter {
   // CONSTANTS
   //
 
-  private const ACCELERATION_VARIANCE = 0.36; //Value 0.36 taken from Arduino-vario, when no accelerometer present (as of now, because gyro data isn't accessible, the watch accelerometer can't be used)
+  private const ACCELERATION_VARIANCE = 0.36f; //Value 0.36 taken from Arduino-vario, when no accelerometer present (as of now, because gyro data isn't accessible, the watch accelerometer can't be used)
   
 
   //
@@ -75,7 +75,6 @@ class MyKalmanFilter {
   }
 
   function update(_fPosition as Float, _fAcceleration as Float, _iTimestamp as Number) as Void {
-    
     // Delta time
     var deltaTime = _iTimestamp - iTimestamp;
     var dt = deltaTime.toFloat();
@@ -85,34 +84,47 @@ class MyKalmanFilter {
     var fAltitudeVariance = $.oMySettings.fVariometerSmoothing * $.oMySettings.fVariometerSmoothing;
 
     //Prediction
+    self.predictState(dt, _fAcceleration, self.ACCELERATION_VARIANCE);
 
-    //values
+    //Gaussian Product
+    self.updateState(_fPosition, fAltitudeVariance);
+  }
+
+  //
+  // Private Functions
+  //
+
+  private function predictState(_fDt as Float, _fAcceleration as Float, _fAccelerationVariance as Float) as Void {
+    // Values
+    var dt = _fDt;
     self.fAcceleration = _fAcceleration;
+
     var dtPower = dt * dt;
     self.fPosition += dt * self.fVelocity + dtPower * self.fAcceleration/2;
     self.fVelocity += dt * self.fAcceleration;
 
-    //covariance
+    // Covariance
     var inc;
     dtPower *= dt;
-    inc = dt * self.p22 + dtPower * self.ACCELERATION_VARIANCE/2;
+    inc = dt * self.p22 + dtPower * _fAccelerationVariance/2;
     dtPower *= dt;
-    self.p11 += dt * (self.p12 + self.p21 + inc) - (dtPower * self.ACCELERATION_VARIANCE/4);
+    self.p11 += dt * (self.p12 + self.p21 + inc) - (dtPower * _fAccelerationVariance/4);
     self.p21 += inc;
     self.p12 += inc;
-    self.p22 += dt * dt * self.ACCELERATION_VARIANCE;
+    self.p22 += dt * dt * _fAccelerationVariance;
+  }
 
-    //Gaussian Product
-
-    //kalman gain
-    var s = self.p11 + fAltitudeVariance;
+  private function updateState(_fPosition as Float, _fAltitudeVariance as Float) as Void {
+    // Kalman gain
+    var s = self.p11 + _fAltitudeVariance;
     var k11 = self.p11 / s;
     var k12 = self.p12 / s;
     var y = _fPosition - self.fPosition;
 
-    //update
+    // Update
     self.fPosition += k11 * y;
     self.fVelocity += k12 * y;
+
     self.p22 -= k12 * self.p21;
     self.p12 -= k12 * self.p11;
     self.p21 -= k11 * self.p21;
