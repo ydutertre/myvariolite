@@ -70,8 +70,8 @@ class MyProcessing {
   private var iPreviousAltitudeEpoch as Number = -1;
   private var fPreviousAltitude as Float = 0.0f;
   // ... we must estimate wind direction and speed (and estimate whether circling at the same time)
-  private var aiAngle as Array<Number>;
-  private var afSpeed as Array<Float>;
+  private var aiAngle as Array<Number> = new Array<Number>[self.DIRECTION_NUM_OF_SECTORS];
+  private var afSpeed as Array<Float> = new Array<Float>[self.DIRECTION_NUM_OF_SECTORS];;
   private var fSpeed as Float = 0.0f;
   private var iAngle as Number = 0;
   private var iWindSectorCount as Number = 0;
@@ -108,15 +108,15 @@ class MyProcessing {
   public var bAutoThermalTriggered as Boolean = false;
   // ... plot buffer (using integer-only operations!)
   public var iPlotIndex as Number = -1;
-  public var aiPlotEpoch as Array<Number>;
-  public var aiPlotLatitude as Array<Number>;
-  public var aiPlotLongitude as Array<Number>;
-  public var aiPlotVariometer as Array<Number>;
+  public var aiPlotEpoch as Array<Number> = new Array<Number>[self.DIRECTION_NUM_OF_SECTORS];;
+  public var aiPlotLatitude as Array<Number> = new Array<Number>[self.DIRECTION_NUM_OF_SECTORS];;
+  public var aiPlotLongitude as Array<Number> = new Array<Number>[self.DIRECTION_NUM_OF_SECTORS];;
+  public var aiPlotVariometer as Array<Number> = new Array<Number>[self.DIRECTION_NUM_OF_SECTORS];;
   // Thermal core calculation
   public var iCenterLongitude as Number = 0;
   public var iCenterLatitude as Number = 0;
   public var iStandardDev as Number = 0;
-  public var aiPointAltitude as Array<Number>;
+  public var aiPointAltitude as Array<Number> = new Array<Number>[self.DIRECTION_NUM_OF_SECTORS];;
 
 
   //
@@ -126,23 +126,11 @@ class MyProcessing {
   function initialize() {
     // Private objects
     // ... Wind sector and speed tracking
-    aiAngle = new Array<Number>[self.DIRECTION_NUM_OF_SECTORS];
-    for(var i=0; i<self.DIRECTION_NUM_OF_SECTORS; i++) { self.aiAngle[i] = 0; }
-    afSpeed = new Array<Float>[self.DIRECTION_NUM_OF_SECTORS];
-    for(var i=0; i<self.DIRECTION_NUM_OF_SECTORS; i++) { self.afSpeed[i] = 0.0f; }
+    self.initializeWindArrays();
 
     // Public objects
     // ... plot buffer
-    aiPlotEpoch = new Array<Number>[self.PLOTBUFFER_SIZE];
-    for(var i=0; i<self.PLOTBUFFER_SIZE; i++) { self.aiPlotEpoch[i] = -1; }
-    aiPlotLatitude = new Array<Number>[self.PLOTBUFFER_SIZE];
-    for(var i=0; i<self.PLOTBUFFER_SIZE; i++) { self.aiPlotLatitude[i] = 0; }
-    aiPlotLongitude = new Array<Number>[self.PLOTBUFFER_SIZE];
-    for(var i=0; i<self.PLOTBUFFER_SIZE; i++) { self.aiPlotLongitude[i] = 0; }
-    aiPlotVariometer = new Array<Number>[self.PLOTBUFFER_SIZE];
-    for(var i=0; i<self.PLOTBUFFER_SIZE; i++) { self.aiPlotVariometer[i] = 0; }
-    aiPointAltitude = new Array<Number>[self.PLOTBUFFER_SIZE];
-    for(var i=0; i<self.PLOTBUFFER_SIZE; i++) { self.aiPointAltitude[i] = 0; }
+    self.initializePlotBuffers();
   }
 
   function resetSensorData() as Void {
@@ -518,6 +506,29 @@ class MyProcessing {
     else {
       if(self.iNotCirclingCount >= self.NOT_CIRCLING_THRESHOLD) { self.iCirclingCount = 0; } //No longer circling
       iNotCirclingCount += 1;
+    }
+  }
+
+  //
+  // Private Functions
+  //
+
+  // Initialize arrays for wind sector angles and speeds
+  private function initializeWindArrays() as Void {
+    for(var i=0; i<self.DIRECTION_NUM_OF_SECTORS; i++) {
+      self.aiAngle[i] = 0;
+      self.afSpeed[i] = 0.0f;
+    }
+  }
+
+  // Initialize plot buffer arrays with default values
+  private function initializePlotBuffers() as Void {
+    for(var i=0; i<self.PLOTBUFFER_SIZE; i++) {
+      self.aiPlotEpoch[i] = -1;
+      self.aiPlotLatitude[i] = 0;
+      self.aiPlotLongitude[i] = 0;
+      self.aiPlotVariometer[i] = 0;
+      self.aiPointAltitude[i] = 0;
     }
   }
 
