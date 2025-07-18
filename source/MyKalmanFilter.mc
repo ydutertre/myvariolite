@@ -78,6 +78,7 @@ class MyKalmanFilter {
     // Delta time
     var deltaTime = _iTimestamp - iTimestamp;
     var dt = deltaTime.toFloat();
+    if (dt == 0.0f) { return;}
     self.iTimestamp = _iTimestamp;
 
     // Variance
