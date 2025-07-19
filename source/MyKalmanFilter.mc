@@ -83,7 +83,7 @@ class MyKalmanFilter {
     // Delta time
     var deltaTime = _iTimestamp - iTimestamp;
     var dt = deltaTime.toFloat();
-    if (dt == 0.0f) { return;}
+    if (dt == 0.0f) { return; }
     self.iTimestamp = _iTimestamp;
 
     // Acceleration Variance
@@ -96,10 +96,10 @@ class MyKalmanFilter {
     // Variance
     var fAltitudeVariance = $.oMySettings.fVariometerSmoothing * $.oMySettings.fVariometerSmoothing;
 
-    //Prediction
+    // Prediction
     self.predictState(dt, _fAcceleration, fAccelVariance);
 
-    //Gaussian Product
+    // Gaussian Product
     self.updateState(_fPosition, fAltitudeVariance);
   }
 
@@ -128,22 +128,24 @@ class MyKalmanFilter {
 
   private function predictState(_fDt as Float, _fAcceleration as Float, _fAccelerationVariance as Float) as Void {
     // Values
-    var dt = _fDt;
     self.fAcceleration = _fAcceleration;
 
-    var dtPower = dt * dt;
-    self.fPosition += dt * self.fVelocity + dtPower * self.fAcceleration/2;
+    // Time powers
+    var dt = _fDt;
+    var dt2 = dt * dt;
+    var dt3 = dt2 * dt;
+    var dt4 = dt2 * dt2;
+
+    // Predict position and velocity
+    self.fPosition += dt * self.fVelocity + 0.5f * dt2 * self.fAcceleration;
     self.fVelocity += dt * self.fAcceleration;
 
-    // Covariance
-    var inc;
-    dtPower *= dt;
-    inc = dt * self.p22 + dtPower * _fAccelerationVariance/2;
-    dtPower *= dt;
-    self.p11 += dt * (self.p12 + self.p21 + inc) - (dtPower * _fAccelerationVariance/4);
+    // Covariance updates
+    var inc = dt * self.p22 + 0.5f * dt3 * _fAccelerationVariance;
+    self.p11 += dt * (self.p12 + self.p21 + inc) - (0.25f * dt4 * _fAccelerationVariance);
     self.p21 += inc;
     self.p12 += inc;
-    self.p22 += dt * dt * _fAccelerationVariance;
+    self.p22 += dt2 * _fAccelerationVariance;
   }
 
   private function updateState(_fPosition as Float, _fAltitudeVariance as Float) as Void {
@@ -151,12 +153,15 @@ class MyKalmanFilter {
     var s = self.p11 + _fAltitudeVariance;
     var k11 = self.p11 / s;
     var k12 = self.p12 / s;
+
+    // Innovation
     var y = _fPosition - self.fPosition;
 
-    // Update
+    // State update
     self.fPosition += k11 * y;
     self.fVelocity += k12 * y;
 
+    // Covariance update
     self.p22 -= k12 * self.p21;
     self.p12 -= k12 * self.p11;
     self.p21 -= k11 * self.p21;
