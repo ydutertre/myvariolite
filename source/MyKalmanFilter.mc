@@ -34,8 +34,9 @@ class MyKalmanFilter {
   // CONSTANTS
   //
 
-  private const ACCELERATION_VARIANCE = 0.36; //Value 0.36 taken from Arduino-vario, when no accelerometer present (as of now, because gyro data isn't accessible, the watch accelerometer can't be used)
-  
+  private const ACCELERATION_VARIANCE = 0.36f; //Value 0.36 taken from Arduino-vario, when no accelerometer present (as of now, because gyro data isn't accessible, the watch accelerometer can't be used)
+  private const MAX_ACCELERATION_HISTORY = 5;  // Tune this number if needed
+  private var afAccelerationHistory as Array<Float> = [];
 
   //
   // VARIABLES
@@ -71,48 +72,96 @@ class MyKalmanFilter {
     self.p21 = 0.0f;
     self.p22 = 0.0f;
 
+    // Init acceleration buffer
+    self.afAccelerationHistory = [];
+    self.afAccelerationHistory.add(_fStartA);
+
     self.bFilterReady = true;
   }
 
   function update(_fPosition as Float, _fAcceleration as Float, _iTimestamp as Number) as Void {
-    
     // Delta time
     var deltaTime = _iTimestamp - iTimestamp;
     var dt = deltaTime.toFloat();
+    if (dt == 0.0f) { return; }
     self.iTimestamp = _iTimestamp;
+
+    // Acceleration Variance
+    var fAccelVariance = self.ACCELERATION_VARIANCE;
+    if (_fAcceleration != 0.0f) {
+      self.updateAccelerationHistory(_fAcceleration);
+      fAccelVariance = self.computeAccelerationVariance();
+    }
 
     // Variance
     var fAltitudeVariance = $.oMySettings.fVariometerSmoothing * $.oMySettings.fVariometerSmoothing;
 
-    //Prediction
+    // Prediction
+    self.predictState(dt, _fAcceleration, fAccelVariance);
 
-    //values
+    // Gaussian Product
+    self.updateState(_fPosition, fAltitudeVariance);
+  }
+
+  //
+  // Private Functions
+  //
+
+  private function updateAccelerationHistory(_fAcceleration as Float) as Void {
+    self.afAccelerationHistory.add(_fAcceleration);
+    if (self.afAccelerationHistory.size() > self.MAX_ACCELERATION_HISTORY) {
+      self.afAccelerationHistory = self.afAccelerationHistory.slice(1, null);
+    }
+  }
+
+  private function computeAccelerationVariance() as Float {
+    // Compute the acceleration variance
+    var fVariance = Math.variance(self.afAccelerationHistory, null);
+
+    // Clamp lower floor to prevent overconfidence and instability
+    if (fVariance < 0.001f) {
+      fVariance = 0.001f;
+    }
+
+    return fVariance;
+  }
+
+  private function predictState(_fDt as Float, _fAcceleration as Float, _fAccelerationVariance as Float) as Void {
+    // Values
     self.fAcceleration = _fAcceleration;
-    var dtPower = dt * dt;
-    self.fPosition += dt * self.fVelocity + dtPower * self.fAcceleration/2;
+
+    // Time powers
+    var dt = _fDt;
+    var dt2 = dt * dt;
+    var dt3 = dt2 * dt;
+    var dt4 = dt2 * dt2;
+
+    // Predict position and velocity
+    self.fPosition += dt * self.fVelocity + 0.5f * dt2 * self.fAcceleration;
     self.fVelocity += dt * self.fAcceleration;
 
-    //covariance
-    var inc;
-    dtPower *= dt;
-    inc = dt * self.p22 + dtPower * self.ACCELERATION_VARIANCE/2;
-    dtPower *= dt;
-    self.p11 += dt * (self.p12 + self.p21 + inc) - (dtPower * self.ACCELERATION_VARIANCE/4);
+    // Covariance updates
+    var inc = dt * self.p22 + 0.5f * dt3 * _fAccelerationVariance;
+    self.p11 += dt * (self.p12 + self.p21 + inc) - (0.25f * dt4 * _fAccelerationVariance);
     self.p21 += inc;
     self.p12 += inc;
-    self.p22 += dt * dt * self.ACCELERATION_VARIANCE;
+    self.p22 += dt2 * _fAccelerationVariance;
+  }
 
-    //Gaussian Product
-
-    //kalman gain
-    var s = self.p11 + fAltitudeVariance;
+  private function updateState(_fPosition as Float, _fAltitudeVariance as Float) as Void {
+    // Kalman gain
+    var s = self.p11 + _fAltitudeVariance;
     var k11 = self.p11 / s;
     var k12 = self.p12 / s;
+
+    // Innovation
     var y = _fPosition - self.fPosition;
 
-    //update
+    // State update
     self.fPosition += k11 * y;
     self.fVelocity += k12 * y;
+
+    // Covariance update
     self.p22 -= k12 * self.p21;
     self.p12 -= k12 * self.p11;
     self.p21 -= k11 * self.p21;
