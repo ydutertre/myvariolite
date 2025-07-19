@@ -57,6 +57,9 @@ class MyProcessing {
   public const PLOTBUFFER_SIZE = 180;  // 3 minutes = 180 seconds
   // Wind estimation sectors
   public const DIRECTION_NUM_OF_SECTORS = 8;
+  // Circling thresholds
+  private const CIRCLING_THRESHOLD = 10;
+  private const NOT_CIRCLING_THRESHOLD = 25;
 
   //
   // VARIABLES
@@ -67,8 +70,8 @@ class MyProcessing {
   private var iPreviousAltitudeEpoch as Number = -1;
   private var fPreviousAltitude as Float = 0.0f;
   // ... we must estimate wind direction and speed (and estimate whether circling at the same time)
-  private var aiAngle as Array<Number>;
-  private var afSpeed as Array<Float>;
+  private var aiAngle as Array<Number> = new Array<Number>[self.DIRECTION_NUM_OF_SECTORS];
+  private var afSpeed as Array<Float> = new Array<Float>[self.DIRECTION_NUM_OF_SECTORS];
   private var fSpeed as Float = 0.0f;
   private var iAngle as Number = 0;
   private var iWindSectorCount as Number = 0;
@@ -99,21 +102,21 @@ class MyProcessing {
   public var iWindDirection as Number = 0;
   public var bWindValid as Boolean = false;
   // ... circling
-  public var bCirclingCount as Number = 0;
-  public var bNotCirclingCount as Number = 0;
+  public var iCirclingCount as Number = 0;
+  public var iNotCirclingCount as Number = 0;
   public var bIsPreviousGeneral as Boolean = true;
   public var bAutoThermalTriggered as Boolean = false;
   // ... plot buffer (using integer-only operations!)
   public var iPlotIndex as Number = -1;
-  public var aiPlotEpoch as Array<Number>;
-  public var aiPlotLatitude as Array<Number>;
-  public var aiPlotLongitude as Array<Number>;
-  public var aiPlotVariometer as Array<Number>;
+  public var aiPlotEpoch as Array<Number> = new Array<Number>[self.PLOTBUFFER_SIZE];
+  public var aiPlotLatitude as Array<Number> = new Array<Number>[self.PLOTBUFFER_SIZE];
+  public var aiPlotLongitude as Array<Number> = new Array<Number>[self.PLOTBUFFER_SIZE];
+  public var aiPlotVariometer as Array<Number> = new Array<Number>[self.PLOTBUFFER_SIZE];
   // Thermal core calculation
   public var iCenterLongitude as Number = 0;
   public var iCenterLatitude as Number = 0;
   public var iStandardDev as Number = 0;
-  public var aiPointAltitude as Array<Number>;
+  public var aiPointAltitude as Array<Number> = new Array<Number>[self.PLOTBUFFER_SIZE];
 
 
   //
@@ -123,23 +126,11 @@ class MyProcessing {
   function initialize() {
     // Private objects
     // ... Wind sector and speed tracking
-    aiAngle = new Array<Number>[self.DIRECTION_NUM_OF_SECTORS];
-    for(var i=0; i<self.DIRECTION_NUM_OF_SECTORS; i++) { self.aiAngle[i] = 0; }
-    afSpeed = new Array<Float>[self.DIRECTION_NUM_OF_SECTORS];
-    for(var i=0; i<self.DIRECTION_NUM_OF_SECTORS; i++) { self.afSpeed[i] = 0.0f; }
+    self.initializeWindArrays();
 
     // Public objects
     // ... plot buffer
-    aiPlotEpoch = new Array<Number>[self.PLOTBUFFER_SIZE];
-    for(var i=0; i<self.PLOTBUFFER_SIZE; i++) { self.aiPlotEpoch[i] = -1; }
-    aiPlotLatitude = new Array<Number>[self.PLOTBUFFER_SIZE];
-    for(var i=0; i<self.PLOTBUFFER_SIZE; i++) { self.aiPlotLatitude[i] = 0; }
-    aiPlotLongitude = new Array<Number>[self.PLOTBUFFER_SIZE];
-    for(var i=0; i<self.PLOTBUFFER_SIZE; i++) { self.aiPlotLongitude[i] = 0; }
-    aiPlotVariometer = new Array<Number>[self.PLOTBUFFER_SIZE];
-    for(var i=0; i<self.PLOTBUFFER_SIZE; i++) { self.aiPlotVariometer[i] = 0; }
-    aiPointAltitude = new Array<Number>[self.PLOTBUFFER_SIZE];
-    for(var i=0; i<self.PLOTBUFFER_SIZE; i++) { self.aiPointAltitude[i] = 0; }
+    self.initializePlotBuffers();
   }
 
   function resetSensorData() as Void {
@@ -203,7 +194,7 @@ class MyProcessing {
 
     // Kalman Filter initialize
     if(LangUtils.notNaN(self.fPreviousAltitude) && self.fPreviousAltitude != null && !$.oMyKalmanFilter.bFilterReady) {
-      $.oMyKalmanFilter.init(self.fPreviousAltitude, 0.0, self.iPreviousAltitudeEpoch);
+      $.oMyKalmanFilter.init(self.fPreviousAltitude, 0.0f, self.iPreviousAltitudeEpoch);
     }
 
     // ... variometer
@@ -211,7 +202,7 @@ class MyProcessing {
       if(self.iPreviousAltitudeEpoch >= 0 and _iEpoch-self.iPreviousAltitudeEpoch != 0) {
         self.fVariometer = (self.fAltitude-self.fPreviousAltitude) / (_iEpoch-self.iPreviousAltitudeEpoch);
         if($.oMyKalmanFilter.bFilterReady) {
-          $.oMyKalmanFilter.update(fAltitude, 0.0, _iEpoch);
+          $.oMyKalmanFilter.update(self.fAltitude, 0.0f, _iEpoch);
           self.fVariometer_filtered = $.oMyKalmanFilter.fVelocity;
           self.fAltitude = $.oMyKalmanFilter.fPosition;
         //  Sys.println(format("DEBUG: (Calculated) altimetric variometer = $1$ ~ $2$", [self.fAltitude, $.oMyKalmanFilter.fPosition]));
@@ -304,7 +295,7 @@ class MyProcessing {
     if(self.fGroundSpeed >= 1.0f and _oInfo has :heading and _oInfo.heading != null) {
       fValue = _oInfo.heading as Float;
       if(fValue < 0.0f) {
-        fValue += 6.28318530718f;
+        fValue += 2 * Math.PI;
       }
       self.fHeading = fValue;
     }
@@ -333,51 +324,7 @@ class MyProcessing {
         self.aiPointAltitude[self.iPlotIndex] = self.fAltitude.toNumber();
 
         if($.oMySettings.bVariometerThermalDetect) {
-          // Thermal core detector
-          var iWeightedSum = 0 as Number;
-          var fWeightedSumLongitude = 0.0f as Float;
-          var fWeightedSumLatitude = 0.0f as Float;
-          var fWeightedMeanLongitude = 0.0f as Float;
-          var fWeightedMeanLongitudeOld = 0.0f as Float;
-          var fWeightedSLongitude = 0.0f as Float;
-          var fWeightedMeanLatitude = 0.0f as Float;
-          var fWeightedMeanLatitudeOld = 0.0f as Float;
-          var fWeightedSLatitude = 0.0f as Float;
-          var iCountClimb = 0 as Number; 
-
-          // Thermal detector uses 1 minute of data
-          for(var i = 0; i<60; i++){
-            var index = (self.iPlotIndex - i) >= 0 ? (self.iPlotIndex - i) : self.PLOTBUFFER_SIZE + (self.iPlotIndex - i);
-            if(aiPlotLatitude[index] != 0 && aiPlotLongitude[index] != 0 && self.aiPlotVariometer[index] > $.oMySettings.fMinimumClimb * 1000.0f) {
-              // Point weight is relative to climb rate
-              var weight = self.aiPlotVariometer[index];
-              // Point weight decreases as measurement altitude is farther from current altitude
-              weight -= ((self.fAltitude.toNumber() - self.aiPointAltitude[index]) * 40).abs();
-              // Point weight decreases with age of point
-              weight -= i * 10;
-              weight = (weight < 0) ? 0 : weight;
-              // One pass weighted mean and weighted variance calculation
-              iWeightedSum += weight;
-              fWeightedMeanLongitudeOld = fWeightedMeanLongitude;
-              fWeightedMeanLatitudeOld = fWeightedMeanLatitude;
-              if(iWeightedSum != 0) {
-                fWeightedMeanLongitude = fWeightedMeanLongitudeOld + (weight.toFloat() / iWeightedSum.toFloat()) * (self.aiPlotLongitude[index].toFloat() - fWeightedMeanLongitudeOld);
-                fWeightedMeanLatitude = fWeightedMeanLatitudeOld + (weight.toFloat() / iWeightedSum.toFloat()) * (self.aiPlotLatitude[index].toFloat() - fWeightedMeanLatitudeOld);
-              }
-              else {
-                fWeightedMeanLongitude = fWeightedMeanLongitudeOld;
-                fWeightedMeanLatitude = fWeightedMeanLatitudeOld;
-              }
-              fWeightedSLongitude += weight * (self.aiPlotLongitude[index] - fWeightedMeanLongitudeOld) * (self.aiPlotLongitude[index] - fWeightedMeanLongitude);
-              fWeightedSLatitude += weight * (self.aiPlotLatitude[index] - fWeightedMeanLatitudeOld) * (self.aiPlotLatitude[index] - fWeightedMeanLatitude);
-            }
-            
-          }
-          if(iWeightedSum != 1) {
-            self.iCenterLongitude = fWeightedMeanLongitude.toNumber();
-            self.iCenterLatitude = fWeightedMeanLatitude.toNumber();
-            self.iStandardDev = Math.sqrt((fWeightedSLongitude + fWeightedSLatitude) / (2 * iWeightedSum - 2)).toNumber();
-          }
+          self.detectThermalCore();
         }
       }
     }
@@ -389,13 +336,13 @@ class MyProcessing {
     self.windStep();
     
     // ... circling Auto Switch
-    if($.oMySettings.bVariometerAutoThermal && !self.bAutoThermalTriggered && self.bCirclingCount >=10) {
+    if($.oMySettings.bVariometerAutoThermal && !self.bAutoThermalTriggered && self.iCirclingCount >= self.CIRCLING_THRESHOLD) {
       self.bAutoThermalTriggered = true;
       Ui.switchToView(new MyViewVarioplot(),
                 new MyViewVarioplotDelegate(),
                 Ui.SLIDE_IMMEDIATE);
     }
-    if($.oMySettings.bVariometerAutoThermal && self.bAutoThermalTriggered && self.bNotCirclingCount >=25) {
+    if($.oMySettings.bVariometerAutoThermal && self.bAutoThermalTriggered && self.iNotCirclingCount >= self.NOT_CIRCLING_THRESHOLD) {
       self.bAutoThermalTriggered = false;
       if(self.bIsPreviousGeneral) {
         Ui.switchToView(new MyViewGeneral(),
@@ -453,7 +400,7 @@ class MyProcessing {
 
   function windStep() as Void {
     if(LangUtils.notNaN(self.fHeading) && LangUtils.notNaN(self.fGroundSpeed) && self.fHeading != null && self.fGroundSpeed != null) {
-      self.iAngle = ((self.fHeading * 57.2957795131f).toNumber()) % 360;
+      self.iAngle = Math.toDegrees(self.fHeading).toNumber() % 360;
       self.fSpeed = self.fGroundSpeed;      
     } else {
       return;
@@ -484,7 +431,7 @@ class MyProcessing {
       else {
         if(self.iWindOldSector == self.iWindSector) {
           //Same sector
-          self.bNotCirclingCount += 1;
+          self.iNotCirclingCount += 1;
         }
         else {
           //More than 360/num of sectors, discard data
@@ -498,8 +445,8 @@ class MyProcessing {
     var iMax = 0;
     // Sys.println(format("DEBUG: Number of wind sectors ~ $1$", [self.iWindSectorCount]));
     if(self.iWindSectorCount.abs() >= self.DIRECTION_NUM_OF_SECTORS) {
-      if(self.bCirclingCount >= 10) { self.bNotCirclingCount = 0; } //Definitely circling
-      self.bCirclingCount += 1;
+      if(self.iCirclingCount >= self.CIRCLING_THRESHOLD) { self.iNotCirclingCount = 0; } //Definitely circling
+      self.iCirclingCount += 1;
       for(var i = 1; i < self.DIRECTION_NUM_OF_SECTORS; i++) {
         if(self.afSpeed[i] > self.afSpeed[iMax]) { iMax = i; }
         if(self.afSpeed[i] < self.afSpeed[iMin]) { iMin = i; }
@@ -513,8 +460,79 @@ class MyProcessing {
       }
     }
     else {
-      if(self.bNotCirclingCount >= 25) { self.bCirclingCount = 0; } //No longer circling
-      bNotCirclingCount += 1;
+      if(self.iNotCirclingCount >= self.NOT_CIRCLING_THRESHOLD) { self.iCirclingCount = 0; } //No longer circling
+      iNotCirclingCount += 1;
+    }
+  }
+
+  //
+  // Private Functions
+  //
+
+  // Initialize arrays for wind sector angles and speeds
+  private function initializeWindArrays() as Void {
+    for(var i=0; i<self.DIRECTION_NUM_OF_SECTORS; i++) {
+      self.aiAngle[i] = 0;
+      self.afSpeed[i] = 0.0f;
+    }
+  }
+
+  // Initialize plot buffer arrays with default values
+  private function initializePlotBuffers() as Void {
+    for(var i=0; i<self.PLOTBUFFER_SIZE; i++) {
+      self.aiPlotEpoch[i] = -1;
+      self.aiPlotLatitude[i] = 0;
+      self.aiPlotLongitude[i] = 0;
+      self.aiPlotVariometer[i] = 0;
+      self.aiPointAltitude[i] = 0;
+    }
+  }
+
+  private function detectThermalCore() as Void {
+    // Thermal core detector
+    var iWeightedSum = 0 as Number;
+    var fWeightedSumLongitude = 0.0f as Float;
+    var fWeightedSumLatitude = 0.0f as Float;
+    var fWeightedMeanLongitude = 0.0f as Float;
+    var fWeightedMeanLongitudeOld = 0.0f as Float;
+    var fWeightedSLongitude = 0.0f as Float;
+    var fWeightedMeanLatitude = 0.0f as Float;
+    var fWeightedMeanLatitudeOld = 0.0f as Float;
+    var fWeightedSLatitude = 0.0f as Float;
+    var iCountClimb = 0 as Number;
+
+    // Thermal detector uses 1 minute of data
+    for(var i = 0; i<60; i++){
+      var index = (self.iPlotIndex - i) >= 0 ? (self.iPlotIndex - i) : self.PLOTBUFFER_SIZE + (self.iPlotIndex - i);
+      if(aiPlotLatitude[index] != 0 && aiPlotLongitude[index] != 0 && self.aiPlotVariometer[index] > $.oMySettings.fMinimumClimb * 1000.0f) {
+        // Point weight is relative to climb rate
+        var weight = self.aiPlotVariometer[index];
+        // Point weight decreases as measurement altitude is farther from current altitude
+        weight -= ((self.fAltitude.toNumber() - self.aiPointAltitude[index]) * 40).abs();
+        // Point weight decreases with age of point
+        weight -= i * 10;
+        weight = (weight < 0) ? 0 : weight;
+        // One pass weighted mean and weighted variance calculation
+        iWeightedSum += weight;
+        fWeightedMeanLongitudeOld = fWeightedMeanLongitude;
+        fWeightedMeanLatitudeOld = fWeightedMeanLatitude;
+        if(iWeightedSum != 0) {
+          fWeightedMeanLongitude = fWeightedMeanLongitudeOld + (weight.toFloat() / iWeightedSum.toFloat()) * (self.aiPlotLongitude[index].toFloat() - fWeightedMeanLongitudeOld);
+          fWeightedMeanLatitude = fWeightedMeanLatitudeOld + (weight.toFloat() / iWeightedSum.toFloat()) * (self.aiPlotLatitude[index].toFloat() - fWeightedMeanLatitudeOld);
+        }
+        else {
+          fWeightedMeanLongitude = fWeightedMeanLongitudeOld;
+          fWeightedMeanLatitude = fWeightedMeanLatitudeOld;
+        }
+        fWeightedSLongitude += weight * (self.aiPlotLongitude[index] - fWeightedMeanLongitudeOld) * (self.aiPlotLongitude[index] - fWeightedMeanLongitude);
+        fWeightedSLatitude += weight * (self.aiPlotLatitude[index] - fWeightedMeanLatitudeOld) * (self.aiPlotLatitude[index] - fWeightedMeanLatitude);
+      }
+
+    }
+    if(iWeightedSum != 1) {
+      self.iCenterLongitude = fWeightedMeanLongitude.toNumber();
+      self.iCenterLatitude = fWeightedMeanLatitude.toNumber();
+      self.iStandardDev = Math.sqrt((fWeightedSLongitude + fWeightedSLatitude) / (2 * iWeightedSum - 2)).toNumber();
     }
   }
 

@@ -53,8 +53,8 @@ class MyAltimeter {
 
   // International Standard Atmosphere (ISA)
   public const ISA_PRESSURE_MSL = 101325.0f;  // [Pa] aka. QNE
-  public const ISA_TEMPERATURE_MSL = 288.15f;  // [°K]
-  public const ISA_TEMPERATURE_LRATE = -0.0065f;  // [°K/m]
+  public const ISA_TEMPERATURE_MSL = 288.15f;  // [K]
+  public const ISA_TEMPERATURE_LRATE = -0.0065f;  // [K/m]
 
   // International Civil Aviation Organization (OACI)
   public const ICAO_ALTITUDE_K1 = 44330.77f;
@@ -76,7 +76,7 @@ class MyAltimeter {
   public var fAltitudeISA as Float = NaN;  // [m]
   public var fAltitudeActual as Float = NaN;  // [m]
 
-  //Automated calibration
+  // Automated calibration
   public var bFirstRun as Boolean = true;
 
   //
@@ -114,7 +114,7 @@ class MyAltimeter {
     self.fAltitudeISA = self.ICAO_ALTITUDE_K1 + self.ICAO_ALTITUDE_K2 * Math.pow(self.fQFE/100.0f, self.ICAO_ALTITUDE_EXP).toFloat();
     //Sys.println(format("DEBUG: Altitude (ISA) = $1$", [self.fAltitudeISA]));
     // ... actual
-    self.fAltitudeActual = self.fAltitudeISA - (Math.pow(self.fQNH/self.ISA_PRESSURE_MSL, self.ICAO_ALTITUDE_EXP).toFloat() - 1.0f)*self.ISA_TEMPERATURE_MSL/self.ISA_TEMPERATURE_LRATE;
+    self.computeActualAltitude();
     //Sys.println(format("DEBUG: Altitude (actual) = $1$ ~ $2$", [self.fAltitudeActual, self.fAltitudeActual_filtered]));
   }
 
@@ -126,17 +126,17 @@ class MyAltimeter {
     self.fQNH = _fQNH;
 
     // ISA altitude (<-> QFE) available ?
-    if(LangUtils.notNaN(self.fAltitudeISA)) {
+    if(self.hasValidAltitudeISA()) {
       // Derive altitude (ICAO formula)
       // ... actual
-      self.fAltitudeActual = self.fAltitudeISA - (Math.pow(self.fQNH/self.ISA_PRESSURE_MSL, self.ICAO_ALTITUDE_EXP).toFloat() - 1.0f)*self.ISA_TEMPERATURE_MSL/self.ISA_TEMPERATURE_LRATE;
+      self.computeActualAltitude();
       //Sys.println(format("DEBUG: Altitude (actual) = $1$ ~ $2$", [self.fAltitudeActual, self.fAltitudeActual_filtered]));
     }
   }
 
   function setAltitudeActual(_fAltitudeActual as Float) as Void {  // [m]
     // ISA altitude (<-> QFE) available ?
-    if(LangUtils.notNaN(self.fAltitudeISA)) {
+    if(self.hasValidAltitudeISA()) {
       // Derive QNH (ICAO formula)
       var fQNH_new = self.ISA_PRESSURE_MSL * Math.pow(1.0f + self.ISA_TEMPERATURE_LRATE*(self.fAltitudeISA-_fAltitudeActual)/self.ISA_TEMPERATURE_MSL, self.ICAO_PRESSURE_EXP).toFloat();
       //Sys.println(format("DEBUG: QNH = $1$", [fQNH_new]));
@@ -144,6 +144,19 @@ class MyAltimeter {
       // Save QNH
       self.setQNH(fQNH_new);
     }
+  }
+
+  //
+  // PRIVATE METHODS
+  //
+
+  private function hasValidAltitudeISA() as Boolean {
+    return LangUtils.notNaN(self.fAltitudeISA);
+  }
+
+  private function computeActualAltitude() as Void {
+    // Computes fAltitudeActual [m] from fAltitudeISA and fQNH
+    self.fAltitudeActual = self.fAltitudeISA - (Math.pow(self.fQNH/self.ISA_PRESSURE_MSL, self.ICAO_ALTITUDE_EXP).toFloat() - 1.0f)*self.ISA_TEMPERATURE_MSL/self.ISA_TEMPERATURE_LRATE;
   }
 
 }
