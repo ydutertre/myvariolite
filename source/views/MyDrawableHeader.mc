@@ -44,11 +44,8 @@ class MyDrawableHeader extends Ui.Drawable {
   // VARIABLES
   //
 
-  // Resources
-  private var oRezHeaderAccuracy1 as Ui.Drawable;
-  private var oRezHeaderAccuracy2 as Ui.Drawable;
-  private var oRezHeaderAccuracy3 as Ui.Drawable;
-  private var oRezHeaderAccuracy4 as Ui.Drawable;
+  // Constants
+  private const BAR_HEIGHTS as Array<Number> = [8, 12, 16, 20];
 
   // Background color
   private var iColorBackground as Number = Gfx.COLOR_TRANSPARENT;
@@ -64,67 +61,47 @@ class MyDrawableHeader extends Ui.Drawable {
   function initialize() {
     Drawable.initialize({:identifier => "MyDrawableHeader"});
 
-    // Resources
-    oRezHeaderAccuracy1 = new Rez.Drawables.drawHeaderAccuracy1();
-    oRezHeaderAccuracy2 = new Rez.Drawables.drawHeaderAccuracy2();
-    oRezHeaderAccuracy3 = new Rez.Drawables.drawHeaderAccuracy3();
-    oRezHeaderAccuracy4 = new Rez.Drawables.drawHeaderAccuracy4();
   }
 
   function draw(_oDC) {
-    // Draw
-    // ... background
+    // Draw background
     _oDC.setColor(self.iColorBackground, self.iColorBackground);
     _oDC.clear();
 
-    // ... positioning accuracy
+    // Determine color and number of bars to highlight
+    var iBars = 0;
+    var iColor = Gfx.COLOR_LT_GRAY;
     switch(self.iPositionAccuracy) {
 
-    case Pos.QUALITY_GOOD:
-      _oDC.setColor(Gfx.COLOR_DK_GREEN, Gfx.COLOR_TRANSPARENT);
-      self.oRezHeaderAccuracy1.draw(_oDC);
-      self.oRezHeaderAccuracy2.draw(_oDC);
-      self.oRezHeaderAccuracy3.draw(_oDC);
-      self.oRezHeaderAccuracy4.draw(_oDC);
-      break;
+      case Pos.QUALITY_GOOD:
+        iBars = 4;
+        iColor = Gfx.COLOR_DK_GREEN;
+        break;
 
-    case Pos.QUALITY_USABLE:
-      _oDC.setColor(Gfx.COLOR_ORANGE, Gfx.COLOR_TRANSPARENT);
-      self.oRezHeaderAccuracy1.draw(_oDC);
-      self.oRezHeaderAccuracy2.draw(_oDC);
-      self.oRezHeaderAccuracy3.draw(_oDC);
-      _oDC.setColor(Gfx.COLOR_LT_GRAY, Gfx.COLOR_TRANSPARENT);
-      self.oRezHeaderAccuracy4.draw(_oDC);
-      break;
+      case Pos.QUALITY_USABLE:
+        iBars = 3;
+        iColor = Gfx.COLOR_ORANGE;
+        break;
 
-    case Pos.QUALITY_POOR:
-      _oDC.setColor(Gfx.COLOR_RED, Gfx.COLOR_TRANSPARENT);
-      self.oRezHeaderAccuracy1.draw(_oDC);
-      self.oRezHeaderAccuracy2.draw(_oDC);
-      _oDC.setColor(Gfx.COLOR_LT_GRAY, Gfx.COLOR_TRANSPARENT);
-      self.oRezHeaderAccuracy3.draw(_oDC);
-      self.oRezHeaderAccuracy4.draw(_oDC);
-      break;
+      case Pos.QUALITY_POOR:
+        iBars = 2;
+        iColor = Gfx.COLOR_RED;
+        break;
 
-    case Pos.QUALITY_LAST_KNOWN:
-      _oDC.setColor(Gfx.COLOR_DK_RED, Gfx.COLOR_TRANSPARENT);
-      self.oRezHeaderAccuracy1.draw(_oDC);
-      _oDC.setColor(Gfx.COLOR_LT_GRAY, Gfx.COLOR_TRANSPARENT);
-      self.oRezHeaderAccuracy2.draw(_oDC);
-      self.oRezHeaderAccuracy3.draw(_oDC);
-      self.oRezHeaderAccuracy4.draw(_oDC);
-      break;
+      case Pos.QUALITY_LAST_KNOWN:
+        iBars = 1;
+        iColor = Gfx.COLOR_DK_RED;
+        break;
 
-    case Pos.QUALITY_NOT_AVAILABLE:
-    default:
-      _oDC.setColor(Gfx.COLOR_LT_GRAY, Gfx.COLOR_TRANSPARENT);
-      self.oRezHeaderAccuracy1.draw(_oDC);
-      self.oRezHeaderAccuracy2.draw(_oDC);
-      self.oRezHeaderAccuracy3.draw(_oDC);
-      self.oRezHeaderAccuracy4.draw(_oDC);
-      break;
-
+      case Pos.QUALITY_NOT_AVAILABLE:
+      default:
+        iBars = 0;
+        break;
     }
+
+    // Geometry
+    self.drawAccuracyBars(_oDC, iBars, iColor);
+
   }
 
 
@@ -138,6 +115,27 @@ class MyDrawableHeader extends Ui.Drawable {
 
   function setPositionAccuracy(_iPositionAccuracy as Number) as Void {
     self.iPositionAccuracy = _iPositionAccuracy;
+  }
+
+  //
+  // FUNCTIONS: private
+  //
+
+  private function drawAccuracyBars(_dc as Gfx.Dc, _iBars as Number, _iColor as Number) as Void {
+    var w = _dc.getWidth();
+    var h = _dc.getHeight();
+
+    var baseX = (0.5f * w).toNumber() - 11; // Left bar
+    var baseline = (0.1f * h + 1).toNumber(); // Bottom anchor
+
+    for (var i = 0; i < BAR_HEIGHTS.size(); i++) {
+      if (i < _iBars) {
+        _dc.setColor(_iColor, Gfx.COLOR_TRANSPARENT);
+      } else {
+        _dc.setColor(Gfx.COLOR_LT_GRAY, Gfx.COLOR_TRANSPARENT);
+      }
+      _dc.fillRectangle(baseX + i * 6, baseline - self.BAR_HEIGHTS[i], 4, self.BAR_HEIGHTS[i]);
+    }
   }
 
 }
