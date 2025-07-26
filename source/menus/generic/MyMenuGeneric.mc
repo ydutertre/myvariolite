@@ -47,13 +47,18 @@ class MyMenuGeneric extends Ui.Menu {
 
     if(_menu == :menuSettings) {
       Menu.setTitle(Ui.loadResource(Rez.Strings.titleSettings) as String);
+      Menu.addItem(Ui.loadResource(Rez.Strings.titleSettingsGeneral) as String, :menuSettingsGeneral);
       Menu.addItem(Ui.loadResource(Rez.Strings.titleSettingsAltimeter) as String, :menuSettingsAltimeter);
       Menu.addItem(Ui.loadResource(Rez.Strings.titleSettingsVariometer) as String, :menuSettingsVariometer);
       Menu.addItem(Ui.loadResource(Rez.Strings.titleSettingsSounds) as String, :menuSettingsSounds);
       Menu.addItem(Ui.loadResource(Rez.Strings.titleSettingsActivity) as String, :menuSettingsActivity);
-      Menu.addItem(Ui.loadResource(Rez.Strings.titleSettingsGeneral) as String, :menuSettingsGeneral);
       Menu.addItem(Ui.loadResource(Rez.Strings.titleSettingsUnits) as String, :menuSettingsUnits);
       Menu.addItem(Ui.loadResource(Rez.Strings.titleAbout) as String, :menuAbout);
+    }
+
+    else if(_menu == :menuSettingsGeneral) {
+      Menu.setTitle(Ui.loadResource(Rez.Strings.titleSettingsGeneral) as String);
+      Menu.addItem(Ui.loadResource(Rez.Strings.titleGeneralBackgroundColor) as String, :menuGeneralBackgroundColor);
     }
 
     else if(_menu == :menuSettingsAltimeter) {
@@ -62,18 +67,18 @@ class MyMenuGeneric extends Ui.Menu {
     }
     else if(_menu == :menuAltimeterCalibration) {
       Menu.setTitle(Ui.loadResource(Rez.Strings.titleAltimeterCalibration) as String);
-      Menu.addItem(Ui.loadResource(Rez.Strings.titleAltimeterCalibrationQNH) as String, :menuAltimeterCalibrationQNH);
       if(LangUtils.notNaN($.oMyAltimeter.fAltitudeActual)) {
         Menu.addItem(Ui.loadResource(Rez.Strings.titleAltimeterCalibrationElevation) as String, :menuAltimeterCalibrationElevation);
       }
+      Menu.addItem(Ui.loadResource(Rez.Strings.titleAltimeterCalibrationQNH) as String, :menuAltimeterCalibrationQNH);
     }
 
     else if(_menu == :menuSettingsVariometer) {
       Menu.setTitle(Ui.loadResource(Rez.Strings.titleSettingsVariometer) as String);
       Menu.addItem(Ui.loadResource(Rez.Strings.titleVariometerRange) as String, :menuVariometerRange);
+      Menu.addItem(Ui.loadResource(Rez.Strings.titleVariometerSmoothing) as String, :menuVariometerSmoothing);
       Menu.addItem(Ui.loadResource(Rez.Strings.titleVariometerAutoThermal) as String, :menuVariometerAutoThermal);
       Menu.addItem(Ui.loadResource(Rez.Strings.titleVariometerThermalDetect) as String, :menuVariometerThermalDetect);
-      Menu.addItem(Ui.loadResource(Rez.Strings.titleVariometerSmoothing) as String, :menuVariometerSmoothing);
       Menu.addItem(Ui.loadResource(Rez.Strings.titleVariometerPlotRange) as String, :menuVariometerPlotRange);
     }
 
@@ -89,11 +94,6 @@ class MyMenuGeneric extends Ui.Menu {
       Menu.setTitle(Ui.loadResource(Rez.Strings.titleSettingsActivity) as String);
       Menu.addItem(Ui.loadResource(Rez.Strings.titleActivityAutoStart) as String, :menuActivityAutoStart);
       Menu.addItem(Ui.loadResource(Rez.Strings.titleActivityAutoSpeedStart) as String, :menuActivityAutoSpeedStart);
-    }
-
-    else if(_menu == :menuSettingsGeneral) {
-      Menu.setTitle(Ui.loadResource(Rez.Strings.titleSettingsGeneral) as String);
-      Menu.addItem(Ui.loadResource(Rez.Strings.titleGeneralBackgroundColor) as String, :menuGeneralBackgroundColor);
     }
 
     else if(_menu == :menuSettingsUnits) {

@@ -186,8 +186,7 @@ class MyViewGeneral extends MyViewGlobal {
     fValue = $.oMyProcessing.fHeading;
 
     if(LangUtils.notNaN(fValue)) {
-      //fValue = ((fValue * 180.0f/Math.PI).toNumber()) % 360;
-      fValue = ((fValue * 57.2957795131f).toNumber()) % 360;
+      fValue = Math.toDegrees(fValue).toNumber() % 360;
       if($.oMySettings.iUnitDirection == 1) {
         sValue = $.oMyProcessing.convertDirection(fValue);
       }
