@@ -1,18 +1,6 @@
 <!-- -*- mode:xml; tab-width:2; c-basic-offset:2; intent-tabs-mode:nil; -*- ex: set tabstop=2 expandtab: -->
 <drawables>
   <bitmap id="AppIcon" filename="../resources/drawables/launcher-40x33.png" />
-  <drawable-list id="drawHeaderAccuracy1" x="109" y="17" width="4" height="8" >
-    <shape type="rectangle" x="0" y="0" width="fill" height="fill" />
-  </drawable-list>
-  <drawable-list id="drawHeaderAccuracy2" x="115" y="13" width="4" height="12" >
-    <shape type="rectangle" x="0" y="0" width="fill" height="fill" />
-  </drawable-list>
-  <drawable-list id="drawHeaderAccuracy3" x="121" y="9" width="4" height="16" >
-    <shape type="rectangle" x="0" y="0" width="fill" height="fill" />
-  </drawable-list>
-  <drawable-list id="drawHeaderAccuracy4" x="127" y="5" width="4" height="20" >
-    <shape type="rectangle" x="0" y="0" width="fill" height="fill" />
-  </drawable-list>
   <drawable-list id="drawContentBorders" x="0" y="29" width="fill" height="182" >
     <shape type="rectangle" x="0" y="0" width="fill" height="2" color="Gfx.COLOR_LT_GRAY" />
     <shape type="rectangle" x="0" y="180" width="fill" height="2" color="Gfx.COLOR_LT_GRAY" />

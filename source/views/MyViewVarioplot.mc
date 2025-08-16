@@ -48,6 +48,9 @@ class MyViewVarioplot extends MyViewHeader {
 
   //CONSTANTS
   public const TIME_CONSTANT = 4;
+  private const AISCALE_RANGE_0 as Array<Number> = [-3000, -2000, -1000, -50, 50, 1000, 2000, 3000];
+  private const AISCALE_RANGE_1 as Array<Number> = [-6000, -4000, -2000, -100, 100, 2000, 4000, 6000];
+  private const AISCALE_RANGE_2 as Array<Number> = [-9000, -6000, -3000, -150, 150, 3000, 6000, 9000];
 
   //
   // VARIABLES
@@ -68,7 +71,7 @@ class MyViewVarioplot extends MyViewHeader {
   private var iDotRadius as Number = 5;
 
   // Color scale
-  private var aiScale as Array<Number> = [-3000, -2000, -1000, -50, 50, 1000, 2000, 3000] as Array<Number>;
+  private var aiScale as Array<Number> = AISCALE_RANGE_0;
 
 
   //
@@ -136,16 +139,16 @@ class MyViewVarioplot extends MyViewHeader {
 
     // Color scale
     switch($.oMySettings.iVariometerRange) {
-    default:
-    case 0:
-      self.aiScale = [-3000, -2000, -1000, -50, 50, 1000, 2000, 3000] as Array<Number>;
-      break;
-    case 1:
-      self.aiScale = [-6000, -4000, -2000, -100, 100, 2000, 4000, 6000] as Array<Number>;
-      break;
-    case 2:
-      self.aiScale = [-9000, -6000, -3000, -150, 150, 3000, 6000, 9000] as Array<Number>;
-      break;
+      default:
+      case 0:
+        self.aiScale = AISCALE_RANGE_0;
+        break;
+      case 1:
+        self.aiScale = AISCALE_RANGE_1;
+        break;
+      case 2:
+        self.aiScale = AISCALE_RANGE_2;
+        break;
     }
 
     // Unmute tones
